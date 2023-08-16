@@ -79,6 +79,12 @@ login seigot
 password ${YOUR_PASSWORD/YOUR_TOKEN}
 ```
 
+関連ツールを事前にインストールしておく
+
+```
+sudo apt install -y jq  # result.jsonからの値取得のために必要
+```
+
 コマンド
 
 ```
