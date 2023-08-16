@@ -4,5 +4,5 @@ while true
 do
     git pull
     bash autorun_server.sh
-    sleep 10
+    sleep 300
 done
