@@ -153,13 +153,29 @@ function do_game(){
     get_result ${SLEEP_SEC}
 }
 
+function save_patch(){
+    _IS_SAVE_PATCH=$1
+    if [ "${_IS_SAVE_PATCH}" == "false" ]; then
+	return 0
+    fi
+    mkdir -p patch
+    TODAY=`date +"%Y%m%d%I%M%S"`
+    git diff > ./patch/${TODAY}.patch    
+}
+
 # 引数に応じて処理を分岐
 # 引数別の処理定義
-while getopts "a:l:s:" optKey; do
+IS_SAVE_PATCH="false"
+while getopts "apl:s:" optKey; do
     case "$optKey" in
 	a)
-	    echo "-a = ${OPTARG}";
+	    echo "-a option specified";
 	    run_awsim;
+	    exit 0
+	    ;;
+	p)
+	    echo "-p option specified";
+	    IS_SAVE_PATCH="true";
 	    ;;
 	l)
 	    echo "-l = ${OPTARG}"
@@ -175,6 +191,7 @@ done
 # main loop
 echo "LOOP_TIMES: ${LOOP_TIMES}"
 echo "SLEEP_SEC: ${SLEEP_SEC}"
+save_patch ${IS_SAVE_PATCH}
 for ((i=0; i<${LOOP_TIMES}; i++));
 do
     echo "----- LOOP: ${i} -----"
