@@ -29,6 +29,12 @@ if [ ! -d ${AICHALLENGE2023_DEV_REPOSITORY} ]; then
    return
 fi
 
+function start_rec(){
+    # start recording
+    obs-cmd recording start
+    sleep 5
+}
+
 function run_awsim(){
 
     # Pre Process
@@ -80,6 +86,12 @@ function run_autoware(){
     echo "CMD: ${AUTOWARE_EXEC_COMMAND}"    
     gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
     sleep 15
+}
+
+function stop_rec(){
+    # stop recording
+    obs-cmd recording stop
+    sleep 5
 }
 
 function get_result(){
@@ -171,8 +183,14 @@ function do_game(){
     ## AUTOWARE-->(2min sleep)-->AWSIMとしないと回避できない(centerpointtopic起きてこない)ので暫定対応
     run_autoware
     sleep 120
+    if [ -n ${REC_PATH} ]; then
+        start_rec
+    fi
     run_awsim
     get_result ${SLEEP_SEC}
+    if [ -n ${REC_PATH} ]; then
+        stop_rec
+    fi
 }
 
 function update_patch(){
@@ -215,9 +233,20 @@ function update_patch(){
     return 0
 }
 
+function upload_rec(){
+    # concatinate and upload recorded file
+    REC_LIST="recfilelist_tmp.txt"
+    REC_RESULT_NAME="result_${TARGET_PATCH_NAME}_${BEST_TIME}.mp4"
+    ls -Q ${REC_PATH}/*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
+    ffmpeg -f concat -safe 0 -i ${REC_LIST} -c copy ${REC_PATH}/${REC_RESULT_NAME}
+    bash upload_rec.sh ${REC_PATH}/${REC_RESULT_NAME}
+    rm ${REC_PATH}/*.mp4
+    rm ${REC_LIST}
+}
+
 # 引数に応じて処理を分岐
 # 引数別の処理定義
-while getopts "a:l:s:" optKey; do
+while getopts "a:l:s:r:" optKey; do
     case "$optKey" in
 	a)
 	    echo "-a = ${OPTARG}";
@@ -230,6 +259,10 @@ while getopts "a:l:s:" optKey; do
 	s)
 	    echo "-s = ${OPTARG}"
 	    SLEEP_SEC=${OPTARG}
+	    ;;
+	r)
+	    echo "-r = ${OPTARG}"
+	    REC_PATH=${OPTARG}
 	    ;;
     esac
 done
@@ -249,3 +282,6 @@ do
     do_game ${SLEEP_SEC}
 done
 push_result
+if [ -n ${REC_PATH} ]; then
+    upload_rec
+fi
