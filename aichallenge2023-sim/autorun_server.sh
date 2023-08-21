@@ -220,6 +220,9 @@ function update_patch(){
     echo "TARGET_PATCH: ${TARGET_PATCH} evaluation start"
     echo ${TARGET_PATCH} >> ${TARGET_PATCH_LIST}
     TARGET_PATCH_NAME="${TARGET_PATCH}"
+    if [ -f ${TARGET_PATCH_NAME}.loop ]; then
+	LOOP_TIMES=`cat ${TARGET_PATCH_NAME}.loop`
+    fi
     popd
 
     # patch更新
@@ -268,14 +271,14 @@ while getopts "a:l:s:r:" optKey; do
 done
 
 # main loop
-echo "LOOP_TIMES: ${LOOP_TIMES}"
-echo "SLEEP_SEC: ${SLEEP_SEC}"
 update_patch
 RET=$?
 if [ "${RET}" == "1" ]; then
     echo "NO EVALUATION PATCH, exit..."
     exit 0
 fi 
+echo "LOOP_TIMES: ${LOOP_TIMES}"
+echo "SLEEP_SEC: ${SLEEP_SEC}"
 for ((i=0; i<${LOOP_TIMES}; i++));
 do
     echo "----- LOOP: ${i} -----"
