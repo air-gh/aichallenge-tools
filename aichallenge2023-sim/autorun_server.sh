@@ -57,6 +57,10 @@ function run_awsim(){
     echo "CMD: ${AWSIM_EXEC_COMMAND}"
     gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
     sleep 15
+
+    AWSIM_WID=`xdotool search --name "AWSIM"`
+    xdotool windowmove ${AWSIM_WID} 0 200
+    xdotool windowsize ${AWSIM_WID} 750 1100
     return
 }
 
@@ -86,6 +90,10 @@ function run_autoware(){
     echo "CMD: ${AUTOWARE_EXEC_COMMAND}"    
     gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
     sleep 15
+
+#    AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
+#    xdotool windowmove ${AUTOWARE_WID} 850 0
+#    xdotool windowsize ${AUTOWARE_WID} 1700 1400
 }
 
 function stop_rec(){
@@ -172,6 +180,12 @@ function preparation(){
 
     # リポジトリ設定など必要であれば実施（仮）
     echo "do_nothing"
+
+    # show patch and loop information
+    LANG=C zenity --info --text "${TARGET_PATCH_NAME}\nLoop: ${i}" &
+    sleep 1
+    ZENITY_WID=`xdotool search --name "Information"`
+    xdotool windowmove ${ZENITY_WID} 0 0
 }
 
 function do_game(){
@@ -187,6 +201,8 @@ function do_game(){
         start_rec
     fi
     run_awsim
+    xdotool windowfocus ${ZENITY_WID}
+    xdotool windowraise ${ZENITY_WID}
     get_result ${SLEEP_SEC}
     if [ -n ${REC_PATH} ]; then
         stop_rec
