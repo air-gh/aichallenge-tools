@@ -18,7 +18,7 @@
 #   - autowareのサンプルコードの手動実行が確認できていること
 
 LOOP_TIMES=7 #10
-SLEEP_SEC=180
+SLEEP_SEC=360 #180
 TARGET_PATCH_NAME="default"
 CURRENT_DIRECTORY_PATH=`pwd`
 
