@@ -86,7 +86,7 @@ function run_autoware(){
     sleep 5
     echo "-- run AUTOWARE run.sh... -->"
     echo "CMD: ${AUTOWARE_EXEC_COMMAND}"    
-    gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+    gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
     sleep 15
 }
 
