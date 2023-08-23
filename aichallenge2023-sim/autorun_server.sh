@@ -55,12 +55,23 @@ function run_awsim(){
     sleep 5
     echo "-- run AWSIM... -->"
     echo "CMD: ${AWSIM_EXEC_COMMAND}"
-    gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
-    sleep 15
+    #gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+    #sleep 15
+    for ((i=0; i<20; i++));
+    do
+	gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+	sleep 15
+	PROCESS_CNT=`ps -aux | grep "docker run --rm -it --name ${AWSIM_ROCKER_NAME}" | wc -l`
+	if [ ${PROCESS_CNT} -ge 2 ]; then
+	    break
+	fi
+	echo "no process ${AUTOWARE_ROCKER_NAME}, retry.."
+    done
 
     AWSIM_WID=`xdotool search --name "AWSIM"`
     xdotool windowmove ${AWSIM_WID} 0 200
     xdotool windowsize ${AWSIM_WID} 750 1100
+
     return
 }
 
