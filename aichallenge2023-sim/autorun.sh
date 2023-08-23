@@ -49,7 +49,7 @@ function run_awsim(){
     echo "CMD: ${AWSIM_EXEC_COMMAND}"
     #gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
     #sleep 15
-    for ((i=0; i<20; i++));
+    for ((ii=0; ii<20; ii++));
     do
        gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
        sleep 15
