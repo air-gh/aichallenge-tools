@@ -69,8 +69,8 @@ function run_awsim(){
     done
 
     AWSIM_WID=`xdotool search --name "AWSIM"`
-    xdotool windowmove ${AWSIM_WID} 0 200
-    xdotool windowsize ${AWSIM_WID} 750 1100
+    xdotool windowmove ${AWSIM_WID} 0 250
+    xdotool windowsize ${AWSIM_WID} 750 1050
 
     return
 }
@@ -193,7 +193,7 @@ function preparation(){
     echo "do_nothing"
 
     # show patch and loop information
-    LANG=C zenity --info --text "${TARGET_PATCH_NAME}\nLoop: ${i}" &
+    LANG=C zenity --info --text "<span font='32'>${TARGET_PATCH_NAME}\nLoop: ${i}</span>" &
     sleep 1
     ZENITY_WID=`xdotool search --name "Information"`
     xdotool windowmove ${ZENITY_WID} 0 0
