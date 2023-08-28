@@ -22,6 +22,13 @@ SLEEP_SEC=360 #180
 TARGET_PATCH_NAME="default"
 CURRENT_DIRECTORY_PATH=`pwd`
 
+ZENITY_FONTSIZE=32
+ZENITY_POS="0 0"
+AWSIM_POS="0 250"
+AWSIM_SIZE="750 1050"
+AUTOWARE_POS="850 0"
+AUTOWARE_SIZE="1700 1400"
+
 # check
 AICHALLENGE2023_DEV_REPOSITORY="${HOME}/aichallenge2023-sim"
 if [ ! -d ${AICHALLENGE2023_DEV_REPOSITORY} ]; then
@@ -32,6 +39,12 @@ fi
 function start_rec(){
     # start recording
     obs-cmd recording start
+    sleep 5
+}
+
+function stop_rec(){
+    # stop recording
+    obs-cmd recording stop
     sleep 5
 }
 
@@ -68,9 +81,11 @@ function run_awsim(){
 	echo "no process ${AUTOWARE_ROCKER_NAME}, retry.."
     done
 
-    AWSIM_WID=`xdotool search --name "AWSIM"`
-    xdotool windowmove ${AWSIM_WID} 0 250
-    xdotool windowsize ${AWSIM_WID} 750 1050
+    if [ -n ${OPT_INFO} ]; then
+	AWSIM_WID=`xdotool search --name "AWSIM"`
+	xdotool windowmove ${AWSIM_WID} ${AWSIM_POS}
+	xdotool windowsize ${AWSIM_WID} ${AWSIM_SIZE}
+    fi
 
     return
 }
@@ -102,15 +117,11 @@ function run_autoware(){
     gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
     sleep 15
 
-#    AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
-#    xdotool windowmove ${AUTOWARE_WID} 850 0
-#    xdotool windowsize ${AUTOWARE_WID} 1700 1400
-}
-
-function stop_rec(){
-    # stop recording
-    obs-cmd recording stop
-    sleep 5
+#    if [ -n ${OPT_INFO} ]; then
+#	AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
+#	xdotool windowmove ${AUTOWARE_WID} ${AUTOWARE_POS}
+#	xdotool windowsize ${AUTOWARE_WID} ${AUTOWARE_SIZE}
+#    fi
 }
 
 function get_result(){
@@ -193,10 +204,12 @@ function preparation(){
     echo "do_nothing"
 
     # show patch and loop information
-    LANG=C zenity --info --text "<span font='32'>${TARGET_PATCH_NAME}\nLoop: ${i}</span>" &
-    sleep 1
-    ZENITY_WID=`xdotool search --name "Information"`
-    xdotool windowmove ${ZENITY_WID} 0 0
+    if [ -n ${OPT_INFO} ]; then
+	LANG=C zenity --info --text "<span font='${ZENITY_FONTSIZE}'>${TARGET_PATCH_NAME}\nLoop: ${i}</span>" &
+	sleep 1
+	ZENITY_WID=`xdotool search --name "Information"`
+	xdotool windowmove ${ZENITY_WID} ${ZENITY_POS}
+    fi
 }
 
 function do_game(){
@@ -212,8 +225,10 @@ function do_game(){
         start_rec
     fi
     run_awsim
-    xdotool windowfocus ${ZENITY_WID}
-    xdotool windowraise ${ZENITY_WID}
+    if [ -n ${OPT_INFO} ]; then
+	xdotool windowfocus ${ZENITY_WID}
+	xdotool windowraise ${ZENITY_WID}
+    fi
     get_result ${SLEEP_SEC}
     if [ -n ${REC_PATH} ]; then
         stop_rec
@@ -265,18 +280,19 @@ function update_patch(){
 
 function upload_rec(){
     # concatinate and upload recorded file
-    REC_LIST="recfilelist_tmp.txt"
+    REC_LIST="rec_file_list_tmp.txt"
     REC_RESULT_NAME="result_${TARGET_PATCH_NAME}_${BEST_TIME}.mp4"
-    ls -Q ${REC_PATH}/*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
+    ls -Q ${REC_PATH}/2023-*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
     ffmpeg -f concat -safe 0 -i ${REC_LIST} -c copy ${REC_PATH}/${REC_RESULT_NAME}
     bash upload_rec.sh ${REC_PATH}/${REC_RESULT_NAME}
-    rm ${REC_PATH}/*.mp4
+    rm ${REC_PATH}/2023-*.mp4
+    rm ${REC_PATH}/${REC_RESULT_NAME}
     rm ${REC_LIST}
 }
 
 # 引数に応じて処理を分岐
 # 引数別の処理定義
-while getopts "a:l:s:r:" optKey; do
+while getopts "a:l:s:r:i" optKey; do
     case "$optKey" in
 	a)
 	    echo "-a = ${OPTARG}";
@@ -293,6 +309,10 @@ while getopts "a:l:s:r:" optKey; do
 	r)
 	    echo "-r = ${OPTARG}"
 	    REC_PATH=${OPTARG}
+	    ;;
+	i)
+	    echo "-i option specified"
+	    OPT_INFO="i"
 	    ;;
     esac
 done
