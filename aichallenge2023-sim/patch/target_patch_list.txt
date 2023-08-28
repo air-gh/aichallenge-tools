@@ -133,3 +133,4 @@
 20230824_001_stop_drivable_area_false_left_bound_offset_-0.40.patch
 20230824_001_stop_drivable_area_false_left_bound_offset_-0.45.patch
 20230824_001_stop_drivable_area_false_left_bound_offset_-0.50.patch
+20230824_001_stop_drivable_area_false_left_bound_offset_-0.17_right_-0.66.patch
