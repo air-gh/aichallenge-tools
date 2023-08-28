@@ -272,6 +272,8 @@ function update_patch(){
     pushd ${AICHALLENGE2023_DEV_REPOSITORY}
     git diff > tmp.patch
     patch -p1 -R < tmp.patch
+    # crank planner削除
+    rm -rf ${HOME}/aichallenge2023-sim/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner
     ## target patch反映
     patch -p1 < ${AICHALLENGE2023_TOOLS_REPOSITORY_PATH}"/aichallenge2023-sim/patch/${TARGET_PATCH_NAME}"
     popd
