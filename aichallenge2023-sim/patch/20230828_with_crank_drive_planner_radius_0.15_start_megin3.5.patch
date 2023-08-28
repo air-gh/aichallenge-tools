@@ -1,0 +1,2890 @@
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
+index 1a999c3..78d08c5 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
+@@ -19,4 +19,6 @@
+     <include file="$(find-pkg-share initialpose_publisher)/launch/initialpose_publisher.launch.xml" />
+ 
+     <include file="$(find-pkg-share self_driving_controller)/launch/self_driving_controller.launch.xml" />
++
++    <include file="$(find-pkg-share crank_driving_planner)/crank_driving_planner.launch.xml" />
+ </launch>
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
+index 400bc92..f095d38 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
+@@ -19,23 +19,23 @@
+     qp_solver_type: "osqp"                       # optimization solver option (unconstraint_fast or osqp)
+     mpc_prediction_horizon: 50                   # prediction horizon step
+     mpc_prediction_dt: 0.1                       # prediction horizon period [s]
+-    mpc_weight_lat_error: 0.1                    # lateral error weight in matrix Q
+-    mpc_weight_heading_error: 0.0                # heading error weight in matrix Q
++    mpc_weight_lat_error: 0.1 #2.5 #2.0 #1.0 #0.6 #0.1                    # lateral error weight in matrix Q
++    mpc_weight_heading_error: 0.0 #1.0 #0.6 #0.0                # heading error weight in matrix Q
+     mpc_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q
+     mpc_weight_steering_input: 1.0               # steering error weight in matrix R
+     mpc_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R
+     mpc_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R
+     mpc_weight_steer_rate: 0.0                   # steering rate weight in matrix R
+     mpc_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R
+-    mpc_low_curvature_weight_lat_error: 0.1                    # lateral error weight in matrix Q in low curvature point
+-    mpc_low_curvature_weight_heading_error: 0.0                # heading error weight in matrix Q in low curvature point
++    mpc_low_curvature_weight_lat_error: 2.5 #0.1                    # lateral error weight in matrix Q in low curvature point
++    mpc_low_curvature_weight_heading_error: 1.0 #0.0                # heading error weight in matrix Q in low curvature point
+     mpc_low_curvature_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q in low curvature point
+-    mpc_low_curvature_weight_steering_input: 1.0               # steering error weight in matrix R in low curvature point
++    mpc_low_curvature_weight_steering_input: 1.0 #1.0               # steering error weight in matrix R in low curvature point
+     mpc_low_curvature_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R in low curvature point
+     mpc_low_curvature_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R in low curvature point
+-    mpc_low_curvature_weight_steer_rate: 0.0                   # steering rate weight in matrix R in low curvature point
++    mpc_low_curvature_weight_steer_rate: 1.0 #0.0                   # steering rate weight in matrix R in low curvature point
+     mpc_low_curvature_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R in low curvature point
+-    mpc_low_curvature_thresh_curvature: 0.0                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
++    mpc_low_curvature_thresh_curvature: 0.03                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
+     mpc_weight_terminal_lat_error: 1.0           # terminal lateral error weight in matrix Q to improve mpc stability
+     mpc_weight_terminal_heading_error: 0.1       # terminal heading error weight in matrix Q to improve mpc stability
+     mpc_zero_ff_steer_deg: 0.5                   # threshold that feed-forward angle becomes zero
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+index 6bb130e..789a813 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+@@ -3,13 +3,13 @@
+     # constraints param for normal driving
+     normal:
+       min_acc: -1.0         # min deceleration [m/ss]
+-      max_acc: 1.0          # max acceleration [m/ss]
++      max_acc: 10.0          # max acceleration [m/ss]
+       min_jerk: -1.0        # min jerk [m/sss]
+-      max_jerk: 1.0         # max jerk [m/sss]
++      max_jerk: 10.0         # max jerk [m/sss]
+ 
+     # constraints to be observed
+     limit:
+       min_acc: -2.5         # min deceleration limit [m/ss]
+-      max_acc: 1.0          # max acceleration limit [m/ss]
++      max_acc: 10.0          # max acceleration limit [m/ss]
+       min_jerk: -1.5        # min jerk limit [m/sss]
+-      max_jerk: 1.5         # max jerk limit [m/sss]
++      max_jerk: 10.5         # max jerk limit [m/sss]
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
+index 329714e..bd03dda 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
+@@ -10,9 +10,9 @@
+       constant_velocity_dist_threshold: 2.0
+ 
+     forward:
+-      max_acc: 1.0
++      max_acc: 10.0
+       min_acc: -1.0
+-      max_jerk: 0.3
++      max_jerk: 10.3
+       min_jerk: -0.3
+       kp: 0.3
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
+index a6906b7..3fa1950 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
+@@ -1,6 +1,6 @@
+ /**:
+   ros__parameters:
+-    jerk_weight: 0.1         # weight for "smoothness" cost for jerk
++    jerk_weight: 0.1 # 0.1         # weight for "smoothness" cost for jerk
+     over_v_weight: 10000.0   # weight for "over speed limit" cost
+     over_a_weight: 500.0     # weight for "over accel limit" cost
+     over_j_weight: 200.0     # weight for "over jerk limit" cost
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
+index e600334..eba3720 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
+@@ -8,11 +8,11 @@
+     margin_to_insert_external_velocity_limit: 0.3   #  margin distance to insert external velocity limit [m]
+ 
+     # curve parameters
+-    max_lateral_accel: 1.0             # max lateral acceleration limit [m/ss]
+-    min_curve_velocity: 2.74            # min velocity at lateral acceleration limit and steering angle rate limit [m/s]
+-    decel_distance_before_curve: 3.5   # slow speed distance before a curve for lateral acceleration limit
++    max_lateral_accel: 3.0   #1.0             # max lateral acceleration limit [m/ss]
++    min_curve_velocity: 0.1  #2.74            # min velocity at lateral acceleration limit and steering angle rate limit [m/s]
++    decel_distance_before_curve: 5.0 #3.5   # slow speed distance before a curve for lateral acceleration limit
+     decel_distance_after_curve: 2.0    # slow speed distance after a curve for lateral acceleration limit
+-    min_decel_for_lateral_acc_lim_filter: -2.5  # deceleration limit applied in the lateral acceleration filter to avoid sudden braking [m/ss]
++    min_decel_for_lateral_acc_lim_filter: -10.5 #-2.5  # deceleration limit applied in the lateral acceleration filter to avoid sudden braking [m/ss]
+ 
+     # engage & replan parameters
+     replan_vel_deviation: 5.53         # velocity deviation to replan initial velocity [m/s]
+@@ -22,8 +22,8 @@
+     stop_dist_to_prohibit_engage: 0.5  # if the stop point is in this distance, the speed is set to 0 not to move the vehicle [m]
+ 
+     # stop velocity
+-    stopping_velocity: 2.778  # change target velocity to this value before v=0 point [m/s]
+-    stopping_distance: 0.0    # distance for the stopping_velocity [m]. 0 means the stopping velocity is not applied.
++    stopping_velocity: 2.778 # 2.778  # change target velocity to this value before v=0 point [m/s]
++    stopping_distance: 0.0 # 0.0    # distance for the stopping_velocity [m]. 0 means the stopping velocity is not applied.
+ 
+     # path extraction parameters
+     extract_ahead_dist: 200.0         # forward trajectory distance used for planning [m]
+@@ -52,7 +52,7 @@
+     max_steering_angle_rate: 40.0            # maximum steering angle rate [degree/s]
+     resample_ds: 0.1                         # distance between trajectory points [m]
+     curvature_threshold: 0.02                # if curvature > curvature_threshold, steeringRateLimit is triggered [1/m]
+-    curvature_calculation_distance: 1.0      # distance of points while curvature is calculating [m]
++    curvature_calculation_distance: 0.0      # distance of points while curvature is calculating [m]
+ 
+     # system
+     over_stop_velocity_warn_thr: 1.389       # used to check if the optimization exceeds the input velocity on the stop point
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+index c14f59f..3f8eddc 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+@@ -2,26 +2,26 @@
+ /**:
+   ros__parameters:
+     avoidance:
+-      resample_interval_for_planning: 0.3               # [m]
+-      resample_interval_for_output: 4.0                 # [m]
++      resample_interval_for_planning: 0.05              # [m]
++      resample_interval_for_output: 0.1                 # [m]
+       detection_area_right_expand_dist: 0.0             # [m]
+-      detection_area_left_expand_dist: 1.0              # [m]
++      detection_area_left_expand_dist: 0.0              # [m]
+       drivable_area_right_bound_offset: 0.0             # [m]
+       drivable_area_left_bound_offset: 0.0              # [m]
+-      object_envelope_buffer: 0.3                       # [m]
++      object_envelope_buffer: 0.45                      # [m]
+ 
+       # avoidance module common setting
+       enable_bound_clipping: false
+       enable_avoidance_over_same_direction: true
+       enable_avoidance_over_opposite_direction: true
+-      enable_update_path_when_object_is_gone: false
+-      enable_force_avoidance_for_stopped_vehicle: false
++      enable_update_path_when_object_is_gone: true
++      enable_force_avoidance_for_stopped_vehicle: false #true
+       enable_safety_check: false
+       enable_yield_maneuver: false
+       disable_path_update: false
+ 
+       # for debug
+-      publish_debug_marker: false
++      publish_debug_marker: true
+       print_debug_info: false
+ 
+       # avoidance is performed for the object type with true
+@@ -30,10 +30,10 @@
+         truck: true
+         bus: true
+         trailer: true
+-        unknown: false
+-        bicycle: false
+-        motorcycle: false
+-        pedestrian: false
++        unknown: true
++        bicycle: true #false
++        motorcycle: true #false
++        pedestrian: true #false
+ 
+       # For target object filtering
+       target_filtering:
+@@ -42,14 +42,14 @@
+         threshold_time_object_is_moving: 1.0            # [s]
+         threshold_time_force_avoidance_for_stopped_vehicle: 10.0 # [s]
+         # detection range
+-        object_check_force_avoidance_clearance: 30.0    # [m]
+-        object_check_forward_distance: 150.0            # [m]
+-        object_check_backward_distance: 2.0             # [m]
++        object_check_force_avoidance_clearance: 1.0    # [m]
++        object_check_forward_distance: 10.0            # [m]
++        object_check_backward_distance: 0.0             # [m]
+         object_check_goal_distance: 20.0                # [m]
+         # filtering parking objects
+-        threshold_distance_object_is_on_center: 1.0     # [m]
+-        object_check_shiftable_ratio: 0.6               # [-]
+-        object_check_min_road_shoulder_width: 0.5       # [m]
++        threshold_distance_object_is_on_center: 0.0     # [m]
++        object_check_shiftable_ratio: 0.0               # [-]
++        object_check_min_road_shoulder_width: 0.0       # [m]
+         # lost object compensation
+         object_last_seen_threshold: 2.0
+ 
+@@ -65,21 +65,21 @@
+       avoidance:
+         # avoidance lateral parameters
+         lateral:
+-          lateral_collision_margin: 1.0                 # [m]
+-          lateral_collision_safety_buffer: 0.7          # [m]
++          lateral_collision_margin: 0.1                 # [m]
++          lateral_collision_safety_buffer: 0.12          # [m]
+           lateral_passable_safety_buffer: 0.0           # [m]
+-          road_shoulder_safety_margin: 0.3              # [m]
++          road_shoulder_safety_margin: 0.0              # [m]
+           avoidance_execution_lateral_threshold: 0.499
+           max_right_shift_length: 5.0
+           max_left_shift_length: 5.0
+         # avoidance distance parameters
+         longitudinal:
+-          prepare_time: 2.0                             # [s]
++          prepare_time: 0.0                             # [s]
+           longitudinal_collision_safety_buffer: 0.0     # [m]
+-          min_prepare_distance: 1.0                     # [m]
+-          min_avoidance_distance: 10.0                  # [m]
+-          min_nominal_avoidance_speed: 7.0              # [m/s]
+-          min_sharp_avoidance_speed: 1.0                # [m/s]
++          min_prepare_distance: 0.0                     # [m]
++          min_avoidance_distance: 0.0                  # [m]
++          min_nominal_avoidance_speed: 0.5              # [m/s]
++          min_sharp_avoidance_speed: 0.5                # [m/s]
+ 
+       # For yield maneuver
+       yield:
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+index 46b176b..68b8345 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+@@ -3,23 +3,23 @@
+     verbose: false
+ 
+     planning_hz: 10.0
+-    backward_path_length: 5.0
+-    forward_path_length: 300.0
++    backward_path_length: 0.0
++    forward_path_length: 20.0
+     backward_length_buffer_for_end_of_pull_over: 5.0
+     backward_length_buffer_for_end_of_pull_out: 5.0
+     minimum_pull_over_length: 16.0
+ 
+-    refine_goal_search_radius_range: 7.5
++    refine_goal_search_radius_range: 3.5
+ 
+     # parameters for turn signal decider
+     turn_signal_intersection_search_distance: 30.0
+     turn_signal_intersection_angle_threshold_deg: 15.0
+-    turn_signal_minimum_search_distance: 10.0
++    turn_signal_minimum_search_distance: 1.0
+     turn_signal_search_time: 3.0
+     turn_signal_shift_length_threshold: 0.3
+     turn_signal_on_swerving: true
+ 
+-    path_interval: 2.0
++    path_interval: 0.1
+ 
+     visualize_maximum_drivable_area: true
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+index 902a93c..d5749f7 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+@@ -3,27 +3,27 @@
+     # Static expansion
+     avoidance:
+       drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     lane_change:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     lane_following:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.66 ##-0.70
++      drivable_area_left_bound_offset: -0.17 #-0.15
+       drivable_area_types_to_skip: [road_border]
+     pull_out:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     pull_over:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     side_shift:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+ 
+     # Dynamic expansion by projecting the ego footprint along the path
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
+index b6a9574..ea264f4 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
+@@ -1,4 +1,4 @@
+ /**:
+   ros__parameters:
+     lane_following:
+-      lane_change_prepare_duration: 2.0
++      lane_change_prepare_duration: 0.0
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
+index daa8e02..515a059 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
+@@ -4,7 +4,7 @@
+       enable_smoothing: true                                       # enable path smoothing by elastic band
+       enable_skip_optimization: false                              # skip elastic band and model predictive trajectory
+       enable_reset_prev_optimization: false                        # If true, optimization has no fix constraint to the previous result.
+-      enable_outside_drivable_area_stop: true                      # stop if the ego's trajectory footprint is outside the drivable area
++      enable_outside_drivable_area_stop: false                      # stop if the ego's trajectory footprint is outside the drivable area
+       use_footprint_polygon_for_outside_drivable_area_check: false # If false, only the footprint's corner points are considered.
+ 
+       debug:
+@@ -12,8 +12,8 @@
+         enable_pub_debug_marker: true           # publish debug marker
+ 
+         # flag to show
+-        enable_debug_info: false
+-        enable_calculation_time_info: false
++        enable_debug_info: true
++        enable_calculation_time_info: true
+ 
+     common:
+       # output
+@@ -89,16 +89,16 @@
+         soft_collision_free_weight: 1000.0        # soft weight for lateral error around the middle point
+ 
+         # tracking error
+-        lat_error_weight: 1.0       # weight for lateral error
+-        yaw_error_weight: 0.0       # weight for yaw error
+-        yaw_error_rate_weight: 0.0  # weight for yaw error rate
+-        steer_input_weight: 1.0     # weight for steering input
+-        steer_rate_weight: 1.0      # weight for steering rate
++        lat_error_weight: 10.0       # weight for lateral error
++        yaw_error_weight: 10.0       # weight for yaw error
++        yaw_error_rate_weight: 10.0  # weight for yaw error rate
++        steer_input_weight: 0.0     # weight for steering input
++        steer_rate_weight: 0.0      # weight for steering rate
+ 
+         terminal_lat_error_weight: 100.0  # weight for lateral error at terminal point
+-        terminal_yaw_error_weight: 100.0  # weight for yaw error at terminal point
++        terminal_yaw_error_weight: 0.0  # 100.0 # weight for yaw error at terminal point
+         goal_lat_error_weight: 1000.0     # weight for lateral error at path end point
+-        goal_yaw_error_weight: 1000.0     # weight for yaw error at path end point
++        goal_yaw_error_weight: 0.0     # 1000.0 # weight for yaw error at path end point
+ 
+       # avoidance
+       avoidance:
+@@ -108,9 +108,9 @@
+         avoidance_cost_decrease_rate: 0.05 # decreased cost per point interval
+ 
+         weight:
+-          lat_error_weight: 0.0     # weight for lateral error
++          lat_error_weight: 10.0     # weight for lateral error
+           yaw_error_weight: 10.0    # weight for yaw error
+-          steer_input_weight: 100.0 # weight for yaw error
++          steer_input_weight: 0.0 # weight for yaw error
+ 
+       # collision free constraint for optimization
+       collision_free_constraints:
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
+index dfc2b2e..4f1a673 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
+@@ -3,7 +3,7 @@
+     common:
+       planning_algorithm: "pid_base" # currently supported algorithm is "pid_base"
+ 
+-      is_showing_debug_info: false
++      is_showing_debug_info: true
+       disable_stop_planning: false # true
+ 
+       # longitudinal info
+@@ -29,7 +29,7 @@
+         trailer: true
+         motorcycle: true
+         bicycle: true
+-        pedestrian: false
++        pedestrian: true
+ 
+       stop_obstacle_type:
+         unknown: true
+@@ -65,7 +65,7 @@
+       stop_obstacle_hold_time_threshold : 1.0 # maximum time for holding closest stop obstacle
+ 
+       ignored_outside_obstacle_type:
+-        unknown: true
++        unknown: false
+         car: false
+         truck: false
+         bus: false
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
+index a68a760..296026a 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
+@@ -15,14 +15,14 @@
+     stop_planner:
+       # params for stop position
+       stop_position:
+-        max_longitudinal_margin: 5.0             # stop margin distance from obstacle on the path [m]
++        max_longitudinal_margin: 5.5             # stop margin distance from obstacle on the path [m]
+         max_longitudinal_margin_behind_goal: 3.0 # stop margin distance from obstacle behind goal on the path [m]
+-        min_longitudinal_margin: 5.0             # stop margin distance when any other stop point is inserted in stop margin [m]
+-        hold_stop_margin_distance: 0.0           # the ego keeps stopping if the ego is in this margin [m]
++        min_longitudinal_margin: 5.5             # stop margin distance when any other stop point is inserted in stop margin [m]
++        hold_stop_margin_distance: 5.5           # the ego keeps stopping if the ego is in this margin [m]
+ 
+       # params for detection area
+       detection_area:
+-        lateral_margin: 0.0                  # margin [m]
++        lateral_margin: 0.2                 # margin [m]
+         vehicle_lateral_margin: 0.0          # margin of vehicle footprint [m]
+         pedestrian_lateral_margin: 0.0       # margin of pedestrian footprint [m]
+         unknown_lateral_margin: 0.0          # margin of unknown footprint [m]
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
+index cac9bb8..d125a73 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
+@@ -1327,7 +1327,7 @@ Visualization Manager:
+                     - Class: rviz_common/Group
+                       Displays:
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: Arrow
+                           Namespaces:
+                             {}
+@@ -1459,7 +1459,7 @@ Visualization Manager:
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_velocity_planner/debug/run_out
+                           Value: false
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: Avoidance
+                           Namespaces:
+                             {}
+@@ -1542,7 +1542,7 @@ Visualization Manager:
+                             Reliability Policy: Reliable
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_velocity_planner/debug/speed_bump
+                           Value: false
+-                      Enabled: false
++                      Enabled: true
+                       Name: DebugMarker
+                   Enabled: true
+                   Name: BehaviorPlanning
+@@ -1721,7 +1721,7 @@ Visualization Manager:
+                           Enabled: false
+                           Name: ObstacleCruise
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: ObstacleAvoidance
+                           Namespaces:
+                             {}
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_universe_launch/tier4_planning_launch/launch/scenario_planning/lane_driving/motion_planning/motion_planning.launch.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_universe_launch/tier4_planning_launch/launch/scenario_planning/lane_driving/motion_planning/motion_planning.launch.py
+index 03bf447..3a1e82b 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_universe_launch/tier4_planning_launch/launch/scenario_planning/lane_driving/motion_planning/motion_planning.launch.py
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_universe_launch/tier4_planning_launch/launch/scenario_planning/lane_driving/motion_planning/motion_planning.launch.py
+@@ -264,7 +264,8 @@ def generate_launch_description():
+     # interface parameter
+     add_launch_arg(
+         "input_path_topic",
+-        "/planning/scenario_planning/lane_driving/behavior_planning/path",
++        #"/planning/scenario_planning/lane_driving/behavior_planning/path",
++        "/crank_driving_planner/path",
+         "input path topic of obstacle_avoidance_planner",
+     )
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/.gitignore b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/.gitignore
+new file mode 100644
+index 0000000..97ac12a
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/.gitignore
+@@ -0,0 +1,2 @@
++*/__pycache__
++*/*/__pycache__
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/LICENSE b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/LICENSE
+new file mode 100644
+index 0000000..1588fd2
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/LICENSE
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2023 bushio
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/README.md b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/README.md
+new file mode 100644
+index 0000000..e1f30a6
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/README.md
+@@ -0,0 +1,23 @@
++# crank_driving_planner
++A planner for Autoware that runs on an S-shaped crank.
++
++# 実行手順
++1. リポジトリをクローン
++```
++cd aichallenge_ws/src/aichallenge_submit/
++git clone git@github.com:bushio/crank_driving_planner.git
++```
++2. motion_planning.launch.py の置き換え
++```
++cp aichallenge_ws/src/crank_driving_planner/launch/motion_planning.launch.py aichallenge_ws/src/aichallenge_submit/autoware_universe_launch/tier4_planning_launch/launch/scenario_planning/lane_driving/motion_planning/
++```
++3. aichallenge_submit.launch.xml の置き換え
++```
++cp aichallenge_ws/src/crank_driving_planner/launch/aichallenge_submit.launch.xml aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/
++```
++
++# 単体実行
++- 下記を実行する。
++```
++ros2 launch crank_driving_planner crank_driving_planner.launch.xml
++```
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/Crank_driving_planner.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/Crank_driving_planner.py
+new file mode 100644
+index 0000000..c12820d
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/Crank_driving_planner.py
+@@ -0,0 +1,506 @@
++import time
++import rclpy
++import numpy as np
++from rclpy.node import Node
++from autoware_auto_planning_msgs.msg import Trajectory, Path
++from geometry_msgs.msg import AccelWithCovarianceStamped, Point
++from autoware_auto_perception_msgs.msg import PredictedObjects
++from autoware_auto_vehicle_msgs.msg import VelocityReport
++from nav_msgs.msg import Odometry
++
++from .util import *
++from .bound_checker import *
++from .predicted_objects_info import PredictedObjectsInfo
++
++## For plot
++from .debug_plot import PlotMarker
++
++from .curve_generator import CurveGenerator
++from .predict_path_generator import PathPredictor
++from .config import CurveConfig
++
++NANO_SECONDS = (1 / 1000)**3
++
++class CrankDrigingPlanner(Node):
++    def __init__(self):
++        super().__init__('CrankDrigingPlanner')
++        self.get_logger().info("Start CrankDrigingPlanner")
++        
++        ## Reference trajectory subscriber. Remap "/planning/scenario_planning/lane_driving/behavior_planning/path" ##
++        self.create_subscription(Path ,"~/input/path", self.onTrigger, 10)
++
++        ## Accrel subscriber ##
++        self.create_subscription(AccelWithCovarianceStamped, "~/input/acceleration", self.onAcceleration, 10)
++
++        ## Vehicle odometry subscriber ##
++        self.create_subscription(Odometry, "~/input/odometry", self.onOdometry, 10)
++
++        ## Vehicle odometry subscriber ##
++        self.create_subscription(Odometry, "~/input/odometry", self.onOdometry, 10)
++
++        # Predicted objects subscriber
++        self.create_subscription(PredictedObjects, "~/input/perception", self.onPerception, 10)
++
++        # Path publisher. Remap "/planning/scenario_planning/lane_driving/path" ##
++        self.pub_path_ = self.create_publisher(Path, 
++                                               "~/output/path", 
++                                                10)
++        # trajectory publisher. Remap "/planning/scenario_planning/lane_driving/trajectory" ##
++        self.pub_traj_ = self.create_publisher(Trajectory, "~/output/trajectory", 10)
++
++
++        ## Road config
++
++        self.curve_cfg = CurveConfig()
++
++        # Initialize input ##
++        self.reference_path = None
++        self.current_accel = None
++        self.current_odometry = None
++        self.crrent_longitudinal_velocity = 0.0
++        self.ego_pose = None
++        self.dynamic_objects = None
++        self.left_bound  = None
++        self.right_bound  = None
++        self.current_left_path_index = None
++        self.current_right_path_index = None
++
++        self.vehicle_state = "initial"
++        self.before_exec_time = -9999 * NANO_SECONDS
++        self.predicted_duration = 10.0
++
++        self.planning_path_pub = None
++
++        ## Check stop time
++        self.stop_time = 0.0
++        self.stop_duration = 60
++
++        self.animation_flag = self.curve_cfg.animation_flag
++        self.debug = False
++        
++        if self.animation_flag:
++            self.plot_marker = PlotMarker()
++            self.curve_plot = None
++            self.curve_backward_point = None
++            self.curve_forward_point = None
++            self.debug_point = None
++
++        self.ego_pose_predicted = None
++        self.predicted_goal_pose = None
++        self.predicted_trajectory = None
++        
++        self.max_traj_dist = 15.0
++        self.next_path_threshold = 10.0
++        self.arrival_threthold = self.curve_cfg.arrival_threthold
++
++        self.use_dwa = False
++        if self.use_dwa:
++            self.dwa_predictor = PathPredictor(self.get_logger(), self.get_clock())
++        self.curve_generator = CurveGenerator(self.get_logger())
++
++    ## Check if input data is initialized. ##
++    def isReady(self):
++        if self.reference_path is None:
++            self.get_logger().warning("The reference path data has not ready yet.")
++            return False
++        if self.current_accel is None:
++            self.get_logger().warning("The accel data has not ready yet.")
++            return False
++        if self.current_odometry is None:
++            self.get_logger().warning("The odometry data has not ready yet.")
++            return False
++
++        if self.ego_pose is None:
++                self.get_logger().warning("The ego pose data has not ready yet.")
++                return False
++        return True
++
++    ## Callback function for odometry subscriber ##
++    def onOdometry(self, msg: Odometry):
++        self.current_odometry = msg
++        self.ego_pose = self.current_odometry.pose.pose
++        self.crrent_vel_x = self.current_odometry.twist.twist.linear.x
++        self.crrent_vel_y = self.current_odometry.twist.twist.linear.y
++        #self.get_logger().info("odometry {}".format(self.current_odometry.pose))
++
++    ## Callback function for accrel subscriber ##
++    def onAcceleration(self, msg: AccelWithCovarianceStamped):
++        # return geometry_msgs/Accel 
++        self.current_accel = accel = [msg.accel.accel.linear.x, msg.accel.accel.linear.y, msg.accel.accel.linear.z]
++
++    ## Callback function for predicted objects ##
++    def onPerception(self, msg: PredictedObjects):
++        self.dynamic_objects = msg
++
++    ## Callback function for path subscriber ##
++    def onTrigger(self, msg: Path):
++        self.reference_path = msg
++
++        ## If sensor data has not prepared yet, publish reference path.
++        if not self.isReady():
++            self.get_logger().info("Not ready")
++            self.pub_path_.publish(self.reference_path)
++            return 
++
++
++        ## Set vehicle status
++        if self.vehicle_state == "drive":
++            if self.crrent_vel_x > 0:
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++            else:
++                self.stop_time += 0.5
++                self.get_logger().info("Stop time {}".format(self.stop_time))
++        elif self.vehicle_state == "initial":
++            if self.crrent_vel_x > 0:
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++        else:
++            if self.crrent_vel_x > 0:
++                self.stop_time = 0.0
++            else:
++                self.stop_time += 0.5
++                self.get_logger().info("Stop time {}".format(self.stop_time))
++
++        if self.vehicle_state == "long_stop":
++            if self.crrent_vel_x > 0:
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++
++        if self.stop_time > self.stop_duration:
++            if self.vehicle_state == "drive":
++                self.vehicle_state = "long_stop"
++                self.stop_time = 0.0
++            elif self.vehicle_state == "S-crank-right" or self.vehicle_state == "S-crank-left":
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++            elif self.vehicle_state =="crank_planning":
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++
++        ## If find dynamic objects, get object pose
++        obj_pose = None
++        if self.dynamic_objects is not None:
++            obj_info = PredictedObjectsInfo (self.dynamic_objects.objects)
++            obj_pose = obj_info.objects_rectangle
++
++
++        ## Set left and right bound
++        self.left_bound = ConvertPointSeq2Array(self.reference_path.left_bound)
++        self.right_bound = ConvertPointSeq2Array(self.reference_path.right_bound)
++
++
++        ## Initialize current path index
++        ego_pose_array = ConvertPoint2List(self.ego_pose)
++        self.current_left_path_index ,self.next_left_path_index = \
++            get_nearest_path_idx(ego_pose_array, self.left_bound, next_path_threshold=5.0)
++
++        self.current_right_path_index ,self.next_right_path_index = \
++            get_nearest_path_idx(ego_pose_array, self.right_bound, next_path_threshold=5.0)
++
++        reference_path_array = ConvertPath2Array(self.reference_path)
++        ## Visualize objects, vehicle and path on matplotlib
++        if self.animation_flag:
++            self.plot_marker.plot_status(ego_pose_array, 
++                                        object_pose =obj_pose, 
++                                        left_bound=self.left_bound,
++                                        right_bound=self.right_bound,
++                                        path_index_left=self.current_left_path_index,
++                                        path_index_next_left=self.next_left_path_index,
++                                        path_index_right=self.current_right_path_index,
++                                        path_index_next_right=self.next_right_path_index,
++                                        path=reference_path_array,
++                                        predicted_goal_pose=self.predicted_goal_pose,
++                                        predicted_trajectory=self.predicted_trajectory,
++                                        curve_plot=self.curve_plot,
++                                        curve_forward_point=self.curve_forward_point,
++                                        curve_backward_point=self.curve_backward_point,
++                                        vis_point=self.debug_point
++                                        )
++        
++        ## Check path angle
++        if self.current_left_path_index + 2 < len(self.left_bound)\
++            and self.current_right_path_index + 2 < len(self.right_bound) :
++            next_left_path = calcDistancePoits(self.left_bound[self.current_left_path_index + 1][0:2],
++                                                ego_pose_array[0:2])
++
++            next_right_path = calcDistancePoits(self.right_bound[self.current_right_path_index + 1][0:2],
++                                                ego_pose_array[0:2])
++            
++            if next_right_path < self.next_path_threshold or next_left_path < self.next_path_threshold:
++                if self.current_left_path_index > 0:
++                    cos_left  = getCosFromLines(self.left_bound[self.current_left_path_index - 1], 
++                                            self.left_bound[self.current_left_path_index],
++                                            self.left_bound[self.current_left_path_index + 1])
++                else:
++                    cos_left = -999
++
++                if self.current_right_path_index > 0:
++                    cos_right = getCosFromLines(self.right_bound[self.current_right_path_index - 1],
++                                            self.right_bound[self.current_right_path_index],
++                                            self.right_bound[self.current_right_path_index + 1])
++                else:
++                    cos_right = -1
++                
++                cos_left_next = getCosFromLines(self.left_bound[self.current_left_path_index], 
++                                           self.left_bound[self.current_left_path_index + 1],
++                                           self.left_bound[self.current_left_path_index + 2])
++                
++                cos_right_next = getCosFromLines(self.right_bound[self.current_right_path_index],
++                                            self.right_bound[self.current_right_path_index + 1],
++                                            self.right_bound[self.current_right_path_index + 2])
++                self.get_logger().info("Left bound cos current {} next {}".format(cos_left, cos_left_next))
++                self.get_logger().info("Right bound cos current {} next {}".format(cos_right, cos_right_next))
++
++                #if self.vehicle_state == "drive":
++                if self.vehicle_state == "drive":
++                    if(cos_left_next < 0.2 and  cos_left_next> -0.2) or (cos_left < 0.2 and  cos_left > -0.2):
++                        self.vehicle_state = "S-crank-right"
++
++                    elif (cos_right_next < 0.2 and cos_right_next > -0.2) or  (cos_right < 0.2 and cos_right > -0.2):
++                        self.vehicle_state = "S-crank-left"
++
++        ## Print vehicle status
++        self.get_logger().info("Vehicle state is {}".format(self.vehicle_state))
++
++        ## =====================================================================
++        ## ======= Check vehicle status and  publish path or trajectory ========
++        ## =====================================================================
++
++        ## If the vehicke is driving or initializing, not execute optimize. ##
++        if self.vehicle_state == "drive" or self.vehicle_state == "initial":
++            self.get_logger().info("Publish reference path")
++            if self.debug:
++                self.get_logger().info("Publish reference path")
++
++
++            self.obstacle_check_on_path(reference_path_array, ego_pose_array, obj_pose)
++
++            self.pub_path_.publish(self.reference_path)
++            return
++
++        ## If the vehicle is in S-crank , optimize path ##
++        elif self.vehicle_state == "S-crank-right" or self.vehicle_state == "S-crank-left":
++            new_path = self.optimize_path_for_crank(self.reference_path, ego_pose_array, obj_pose, self.left_bound, self.right_bound)
++            self.pub_path_.publish(new_path)
++            return 
++
++        ## If the vehicke is stopped long time, optimize trajectory ##
++        elif self.vehicle_state == "long_stop":
++            self.optimize_path_for_avoidance(self.reference_path, ego_pose_array, obj_pose, self.left_bound, self.right_bound)
++            self.stop_time = 0.0
++            return 
++        
++        ## If the vehicle is planning, check planning time.##
++        elif self.vehicle_state == "long_stop_planning":
++            if self.debug:
++                self.get_logger().info("Planning now")
++            waite_time = (self.get_clock().now().nanoseconds - self.before_exec_time) * (NANO_SECONDS)
++            if waite_time < self.predicted_duration:
++                self.get_logger().info("Remaining wait time {}".format(self.predicted_duration - waite_time))
++                self.optimize_path_for_avoidance(self.reference_path, ego_pose_array, obj_pose, self.left_bound, self.right_bound)
++                return
++            else:
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++                return
++        
++        ## If the vehicle is crank_planning, check distance from th predicted goal pose##
++        elif self.vehicle_state == "crank_planning":
++            d = calcDistancePoits(self.predicted_goal_pose[0:2], ego_pose_array[0:2])
++            self.get_logger().info("Distance between ego pose and goal {}".format(d))
++            if d < self.arrival_threthold:
++                self.vehicle_state = "drive"
++                self.stop_time = 0.0
++                self.curve_generator.reset_enable_planning()
++                return
++            else:
++                self.pub_path_.publish(self.planning_path_pub)
++                return
++        else:
++            return 
++
++    def optimize_path_for_crank(self, reference_path, ego_pose_array, object_pose, left_bound, right_bound):
++        self.get_logger().info("[S-crank]: Calc for {}".format(self.vehicle_state))
++        if self.vehicle_state == "S-crank-right":
++            outer_bound= left_bound
++            inner_bound = right_bound
++            curve_sign = -1
++        elif self.vehicle_state ==  "S-crank-left":
++            outer_bound = right_bound
++            inner_bound= left_bound
++            curve_sign = 1
++        else:
++            self.get_logger().error("[S-crank]: This optimizer can'nt be used for {}".format(self.vehicle_state))
++        
++        new_path = reference_path
++        reference_path_array = ConvertPath2Array(reference_path)
++
++        ## Get the diag line of inner bound.
++        diag_idx = get_diag_point(inner_bound)
++
++        ## Get the sharp point of outer bound.
++        sharp_index = get_sharp_point(outer_bound)
++        if (sharp_index is None) or (diag_idx is None):
++            return new_path
++        
++        ## Judge actions from Road width 
++        road_width = getRoadWidth(inner_bound, outer_bound, diag_idx, sharp_index)
++        self.get_logger().info("Road width {}".format(road_width))
++        if road_width >= 3.2:
++            R = self.curve_cfg.circle_radius[0]
++            curve_angle = self.curve_cfg.circle_angle_rate[0]
++            predict_curve = self.curve_cfg.exec_predict[0]
++            inner_start_mergin = self.curve_cfg.inner_start_mergin[0]
++            inner_finish_mergin = self.curve_cfg.inner_finish_mergin[0]
++        elif road_width >= 2.5 and road_width < 3.2:
++            R = self.curve_cfg.circle_radius[1]
++            curve_angle = self.curve_cfg.circle_angle_rate[1]
++            predict_curve = self.curve_cfg.exec_predict[1]
++            inner_start_mergin = self.curve_cfg.inner_start_mergin[1]
++            inner_finish_mergin = self.curve_cfg.inner_finish_mergin[1]
++        elif road_width > 2.0  and road_width < 2.5:
++            R = self.curve_cfg.circle_radius[2]
++            curve_angle = self.curve_cfg.circle_angle_rate[2]
++            predict_curve = self.curve_cfg.exec_predict[2]
++            inner_start_mergin = self.curve_cfg.inner_start_mergin[2]
++            inner_finish_mergin = self.curve_cfg.inner_finish_mergin[2]
++        else:
++            R = self.curve_cfg.circle_radius[3]
++            curve_angle = self.curve_cfg.circle_angle_rate[3]
++            predict_curve = self.curve_cfg.exec_predict[3]
++            inner_start_mergin = self.curve_cfg.inner_start_mergin[3]
++            inner_finish_mergin = self.curve_cfg.inner_finish_mergin[3]
++        
++        dist_to_sharp_point = calcDistancePoits(ego_pose_array[0:2], outer_bound[sharp_index])
++        
++        if dist_to_sharp_point > self.curve_cfg.sharp_dist_threshold:
++            self.get_logger().info("Distance to_sharp_point {}".format(dist_to_sharp_point))
++            predict_curve = False
++
++        ## Predict curve path
++        if predict_curve:
++            self.get_logger().info("Predict curve")
++            result = self.curve_generator.generate_curve_circle(
++                new_path, 
++                reference_path_array, 
++                outer_bound,
++                inner_bound,
++                diag_idx,
++                sharp_index,
++                road_width,
++                curve_sign,
++                carve_radius = R,
++                curve_angle = curve_angle,
++                inner_start_mergin=inner_start_mergin,
++                inner_finish_mergin=inner_finish_mergin
++                )
++        else:
++            result = None
++    
++        if result is not None:
++            self.predicted_goal_pose = self.curve_generator.predicted_goal_pose
++            self.curve_plot = self.curve_generator.curve_plot
++            self.debug_point = self.curve_generator.debug_point
++            self.vehicle_state = "crank_planning"
++            new_path = result
++
++        self.planning_path_pub = new_path
++        return new_path
++
++    ## Optimize Path for avoidance
++    def optimize_path_for_avoidance(self, reference_path, ego_pose_array, object_pose, left_bound, right_bound):
++
++        ## If vehicle is not stopped, publish reference path ##
++        self.get_logger().info("Publish optimized path")
++
++        # Set goal pose
++        if self.vehicle_state != "long_stop_planning":
++            self.predicted_goal_pose = (self.left_bound[self.current_left_path_index+1][0:2] + self.right_bound[self.current_right_path_index+1][0:2]) /2
++
++        ## Predict new trajectory
++        if self.use_dwa:
++            reference_path_array = ConvertPath2Array(reference_path)
++            output_traj = self.dwa_predictor.predict_path_by_dwa(
++                            reference_path, 
++                            ego_pose_array, 
++                            self.predicted_goal_pose, 
++                            object_pose, 
++                            left_bound, 
++                            right_bound,
++                            self.current_left_path_index, 
++                            self.current_right_path_index)
++            predicted_traj = self.dwa_predictor.predicted_traj
++            if self.animation_flag:
++                self.get_logger().info("predicted trajectory points {}".format(len(predicted_traj)))
++                self.predicted_trajectory = predicted_traj
++        
++        ## Use reference path as trajectory
++        else:
++            reference_path_array = ConvertPath2Array(reference_path)
++            nearest_idx = getNearestPointIndex(ego_pose_array[0:2], reference_path_array[:, 0:2])
++            for i in range(50):
++                reference_path_array[nearest_idx + i][1] -= 0.5
++                reference_path.points[nearest_idx + i].pose.position.y -= reference_path_array[nearest_idx + i][1]
++            
++            traj_dist = 0.0
++            output_traj = Trajectory()
++            output_traj.header = reference_path.header
++            output_traj.header.stamp = self.get_clock().now().to_msg()
++            output_traj.points = convertPathToTrajectoryPoints(self.reference_path, 
++                                                               start_idx=nearest_idx,
++                                                               end_idx=len(self.reference_path.points) - 1)
++            for idx in range(nearest_idx, len(reference_path_array)):
++                traj_dist  += calcDistancePoits(reference_path_array[idx][0:2], reference_path_array[idx - 1][0:2])
++                if traj_dist > self.max_traj_dist:
++                    break
++
++            ignore_point = len(reference_path_array) - idx
++            for _ in range(ignore_point):
++                if len(output_traj.points) <= 10:
++                    break
++                output_traj.points.pop(-1)
++            self.predicted_trajectory = reference_path_array
++        
++        self.output_traj = output_traj
++        self.get_logger().info("Output trajectory points {}".format(len(output_traj.points)))
++
++        ## Path Optimize ##
++        if self.vehicle_state != "long_stop_planning":
++            self.before_exec_time = self.get_clock().now().nanoseconds
++            self.vehicle_state = "long_stop_planning"
++
++        ## Publish traj
++        self.pub_traj_.publish(self.output_traj)
++        
++    
++    def obstacle_check_on_path(self, reference_path_array, ego_pose_array, object_pose):
++        if object_pose is None:
++            return
++        if len(object_pose) == 0:
++            return
++
++        dist = calcDistancePoitsFromArray(ego_pose_array, object_pose)
++        nearest_idx = dist.argmin()
++        
++        obj_thrshold = 10
++        if dist[nearest_idx] < obj_thrshold:
++            dit_path_ob = calcDistancePoitsFromArray(object_pose[nearest_idx], reference_path_array)
++            nearest_idx_path_ob = dit_path_ob.argmin()
++            self.debug_point = reference_path_array[nearest_idx_path_ob][0:2]
++            #self.get_logger().info("Distance fron objects is {}".format(dit_path_ob[nearest_idx_path_ob]))
++        else:
++            return
++
++def main(args=None):
++    print('Hi from CrankDrigingPlanner')
++    rclpy.init(args=args)
++    
++    crank_drining_plan_class = CrankDrigingPlanner()
++    rclpy.spin(crank_drining_plan_class)
++
++    crank_drining_plan_class.destroy_node()
++    rclpy.shutdown()
++
++if __name__ == '__main__':
++    main()
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/__init__.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/__init__.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/__init__.py
+new file mode 100644
+index 0000000..f3b1d9b
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/__init__.py
+@@ -0,0 +1 @@
++from .path_index_checker import *
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/path_index_checker.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/path_index_checker.py
+new file mode 100644
+index 0000000..1655003
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/bound_checker/path_index_checker.py
+@@ -0,0 +1,44 @@
++import numpy as np
++import sys
++import os
++sys.path.append(os.path.dirname(__file__) + "/../")
++from util import *
++
++
++def get_nearest_path_idx(ego_pose, bound, next_path_threshold=5.0):
++    diff = calcDistancePoitsFromArray(ego_pose, bound)
++    current_path_index = diff.argmin()
++    
++    next_path_index = None
++    for idx in range(len(diff)):
++        if diff[idx] > next_path_threshold:
++            next_path_index = idx
++            break
++
++    if next_path_index is None or next_path_index == 0:
++        next_path_index = current_path_index + 1
++    
++    return current_path_index, next_path_index
++
++def get_sharp_point(bound):
++    sharp_index = None
++    if len(bound) < 3:
++        return sharp_index
++
++    for idx in range(2, len(bound)):
++        cos= getCosFromLines(bound[idx - 2], bound[idx - 1], bound[idx])
++        if (cos < 0.2 and cos > -0.2):
++            sharp_index = idx -1
++            break
++    return sharp_index
++
++def get_diag_point(bound):
++    diag_idx = None
++    if len(bound) < 3:
++        return diag_idx
++    for idx in range(2, len(bound)):
++        cos= getCosFromLines(bound[idx - 2], bound[idx - 1], bound[idx])
++        if (cos < 0.85 and cos > 0.4) or (cos < -0.4 and cos > -0.85):
++            diag_idx = idx -1 
++            break
++    return diag_idx
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/__init__.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/__init__.py
+new file mode 100644
+index 0000000..6f4eb9f
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/__init__.py
+@@ -0,0 +1,2 @@
++from .dwa_cfg import DWA_Config
++from .curve_cfg import CurveConfig
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/curve_cfg.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/curve_cfg.py
+new file mode 100644
+index 0000000..b038ce5
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/curve_cfg.py
+@@ -0,0 +1,16 @@
++
++
++class CurveConfig:
++    def __init__(self):
++        self.circle_radius = [4.0, 4.5, 3.0, 1.5] # 7.5[m]
++        self.circle_angle_rate = [0.7, 0.6, 0.4, 0.3] 
++
++        self.inner_start_mergin = [2.0, 2.0, 1.5, 3.5] # 3.5[m]
++        self.inner_finish_mergin = [5.0, 5.0, 1.0, 1.0] #[m]
++
++        self.exec_predict = [False, False, False, True]
++
++        self.sharp_dist_threshold = 15 #[m]
++        self.animation_flag = True #False
++
++        self.arrival_threthold = 1.5 #[m]
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/dwa_cfg.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/dwa_cfg.py
+new file mode 100644
+index 0000000..e9bbb77
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/config/dwa_cfg.py
+@@ -0,0 +1,57 @@
++import math
++
++class DWA_Config:
++    """
++    simulation parameter class
++    """
++
++    def __init__(self):
++        ################
++        # Simulator parameter
++        #################        
++        # Matplotlib parameter
++        self.plot_y_min = -2
++        self.plot_y_max = 40
++        self.plot_x_min = 0
++        self.plot_x_max = 40
++        
++        # Path parameter
++        self.point_interval = 0.2 #[m]
++
++        # Robot parameter
++        self.robot_type = "rectangle" #  "rectangle" or "circle"
++        self.robot_radius = 1.0 # [m]
++        self.robot_width = 1.5  # [m]
++        self.robot_length = 3.5  # [m]
++        
++        ################
++        # DWA parameter
++        #################
++        # robot parameter
++        self.max_speed = 3.0  # [m/s]
++        self.min_speed = -1.0  # [m/s]
++        self.max_yaw_rate = 35.0 * math.pi / 180.0  # [rad/s]
++        self.max_accel = 1.0 # [m/ss]
++        self.max_delta_yaw_rate = 35.0 * math.pi / 180.0  # [rad/ss]
++        self.dt = 0.25  # [s] Time tick for motion prediction
++        
++        # Resolution of rotation motion
++        self.yaw_rate_resolution = 0.1 * math.pi / 180.0  # [rad/s]
++        # Resolution of translational motion
++        self.v_resolution = 0.1  # [m/s]
++        
++        # Prediction time. The longer this time, the longer trajectory length.
++        self.predict_time = 3.0  # [s]
++        self.to_goal_cost_gain = 0.5
++        self.speed_cost_gain = 0.5
++        self.obstacle_cost_gain = 10.0
++        self.path_cost_gain = 10.0
++        self.robot_stuck_flag_cons = 0.001  # constant to prevent robot stucked
++        
++        # If the distance between object and robot more than threshold , cost is ignored.
++        self.ob_dist_threshold = 10.0
++        self.path_dist_threshold = 10.0
++
++        self.ob_penalty = -1 # If vehicle stacked obstacle, the cost is set as this value.
++        self.path_penalty = -1 # If vehicle stacked path, the cost is set as this value.
++        self.path_point_size = 0.1 # vehicle and path point margin 
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/curve_generator.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/curve_generator.py
+new file mode 100644
+index 0000000..06dba33
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/curve_generator.py
+@@ -0,0 +1,255 @@
++import numpy as np
++import copy
++from .util import *
++from autoware_auto_planning_msgs.msg import Path, PathPoint
++
++class CurveGenerator:
++    def __init__(self, logger):
++        self.logger = logger
++
++        self.curve_alpha = 0.5
++        self.curve_vel = 1.0
++        self.curve_lateral_vel = 5.0
++        self.curve_beta_1 = 0.75
++        self.curve_beta_2 = 0.75
++        self.curve_delta_2 = np.deg2rad(90)
++
++        self.arrival_threthold = 1.5
++        self.curve_forward_mergin = 15.0
++        self.curve_backward_mergin = 6.0
++
++        self.enable_planning_flag = True
++        self.margin_idx = 10
++
++
++    def generate_curve_sign_revision(self, new_path, reference_path_array, target_bound, path_index, curve_sign):
++        forward_vec = target_bound[path_index + 1] - target_bound[path_index]
++        forward_vec_length = np.hypot(forward_vec[0], forward_vec[1])
++        forward_vec_norm = forward_vec / forward_vec_length 
++
++        backward_vec = target_bound[path_index - 1] - target_bound[path_index]
++        backward_veclength = np.hypot(backward_vec[0], backward_vec[1])
++        backward_vec_norm = backward_vec / backward_veclength
++
++        curve_forward_point = target_bound[path_index] + self.curve_forward_mergin * forward_vec_norm
++        curve_backward_point = target_bound[path_index] + self.curve_backward_mergin * backward_vec_norm
++        
++        ## For debug
++        self.curve_forward_point = curve_forward_point
++        self.curve_backward_point = curve_backward_point
++        
++        dist_to_right_angle = calcDistancePoitsFromArray(target_bound[path_index], reference_path_array[: , 0:2])
++        dist_to_curve_start = calcDistancePoitsFromArray(curve_backward_point, reference_path_array[: , 0:2])
++        dist_to_curve_end = calcDistancePoitsFromArray(curve_forward_point, reference_path_array[: , 0:2])
++
++        curve_start_point_idx = dist_to_curve_start.argmin()
++        curve_end_point_idx = dist_to_curve_end.argmin()
++
++        self.predicted_goal_pose = reference_path_array[curve_end_point_idx][0:2]
++        self.logger.info("[S-crank]: Curve start_ponint_index :{} ,Next point index {}".format(curve_start_point_idx,
++                                                                                      curve_end_point_idx
++                                                                                      ))
++        
++        middle_point_idx = dist_to_right_angle.argmin()
++
++        quarter_point_idx = int((curve_end_point_idx + middle_point_idx) / 2)
++        self.debug_point = reference_path_array[middle_point_idx][0:2]
++
++        ## Calculate new path on curve
++        for idx in range(curve_start_point_idx,  middle_point_idx):
++            reference_path_array[idx][0:2] += self.curve_beta_1 * forward_vec_norm
++            new_path.points[idx].pose.position.x = reference_path_array[idx][0]
++            new_path.points[idx].pose.position.y = reference_path_array[idx][1]
++            new_path.points[idx].longitudinal_velocity_mps = self.curve_vel
++            new_path.points[idx].lateral_velocity_mps = self.curve_lateral_vel
++
++            reference_path_array[idx - 1][2] = getInterpolatedYaw(reference_path_array[idx - 1], reference_path_array[idx])
++            new_path.points[idx - 1].pose.orientation = getQuaternionFromEuler(yaw=reference_path_array[idx - 1][2])
++
++
++        rad_d = math.pi / (curve_end_point_idx - middle_point_idx)
++        rad = 0.0
++        for idx in range(middle_point_idx,  curve_end_point_idx):
++            reference_path_array[idx][0:2] += self.curve_beta_2 * backward_vec_norm * np.sin(rad)
++            new_path.points[idx].pose.position.x = reference_path_array[idx][0]
++            new_path.points[idx].pose.position.y = reference_path_array[idx][1]
++            new_path.points[idx].longitudinal_velocity_mps = self.curve_vel
++            new_path.points[idx].lateral_velocity_mps = self.curve_lateral_vel
++
++            reference_path_array[idx - 1][2] = getInterpolatedYaw(reference_path_array[idx - 1], reference_path_array[idx])
++            #reference_path_array[idx - 1][2] += self.curve_delta_2 * curve_sign
++            new_path.points[idx - 1].pose.orientation = getQuaternionFromEuler(yaw=reference_path_array[idx - 1][2])
++
++            rad += rad_d
++
++        ## smooting path
++        min_path_length = 0.001
++        for idx in reversed(range(curve_start_point_idx, curve_end_point_idx)):
++            p1 = np.array([new_path.points[idx].pose.position.x, new_path.points[idx].pose.position.y])
++            p2 = np.array([new_path.points[idx + 1].pose.position.x, new_path.points[idx + 1].pose.position.y])
++            dt = calcDistancePoits(p1, p2)
++            if dt < min_path_length:
++                del new_path.points[idx]
++
++        goal_distance = calcDistancePoits(self.predicted_goal_pose[0:2], reference_path_array[curve_start_point_idx][0:2])
++
++        self.curve_plot = reference_path_array[curve_start_point_idx:curve_end_point_idx + 1]
++        return new_path
++    
++    def generate_curve_circle(self, reference_path, reference_path_array : np.array, outer_bound : np.array, inner_bound : np.array, 
++                              diag_idx: int, sharp_index: int, road_width :float,  curve_sign:int,
++                              carve_radius: float = 3.0, curve_angle :float =0.6, inner_start_mergin:float =2.0, inner_finish_mergin:float =5.0):
++
++        if  self.enable_planning_flag:
++            self.enable_planning_flag = False
++            self.outer_bound = outer_bound
++            self.inner_bound = inner_bound
++            self.diag_idx = diag_idx
++            self.sharp_index = sharp_index
++        
++            ## Calculate vec 
++            outer_backward_vec = getNormVec(self.outer_bound[self.sharp_index], self.outer_bound[self.sharp_index - 1])
++            inner_backward_vec = getNormVec(self.inner_bound[self.diag_idx], self.inner_bound[self.diag_idx - 1])
++            outer_forward_vec = getNormVec(self.outer_bound[self.sharp_index], self.outer_bound[self.sharp_index + 1])
++            inner_forward_vec = getNormVec(self.inner_bound[self.diag_idx + 1], self.inner_bound[self.diag_idx + 2])
++
++            ##  Get sharp_point
++            inner_sharp_point = getCrossPoint(self.inner_bound[self.diag_idx + 1], 
++                                            -1 *inner_backward_vec,
++                                            self.inner_bound[self.diag_idx + 2],
++                                            -1* inner_forward_vec)
++            outer_sharp_point = self.outer_bound[self.sharp_index]
++            
++            inner_start_point = self.inner_bound[self.diag_idx]
++            inner_finish_point = self.inner_bound[self.diag_idx + 1]
++            outer_finish_point = getCrossPoint(self.inner_bound[self.diag_idx + 1], 
++                                            -1 *inner_backward_vec,
++                                            self.outer_bound[self.sharp_index],
++                                            outer_forward_vec)
++            
++            inner_finish_mergin_point = inner_finish_point + inner_finish_mergin * inner_forward_vec
++            inner_start_mergin_point = inner_start_point + inner_start_mergin * inner_backward_vec
++            
++            curve_start_idx = getNearestPointIndex(inner_start_point, reference_path_array[:, 0:2])
++            curve_start_margin_idx = getNearestPointIndex(inner_start_mergin_point , reference_path_array[:, 0:2])
++
++            curve_end_idx = getNearestPointIndex(inner_finish_point, reference_path_array[:, 0:2])
++            curve_end_margin_idx = getNearestPointIndex(inner_finish_mergin_point, reference_path_array[:, 0:2])
++
++            self.logger.info("Road width {}".format(road_width))
++
++            if curve_sign < 0:
++                ## Turn right
++                current_rad = math.pi
++            else:
++                ## Turn left
++                current_rad = math.pi
++
++            ## Set curve start and end
++            self.curve_start_idx = curve_start_margin_idx
++            self.curve_end_idx = curve_end_margin_idx
++            curve_start_point = copy.deepcopy(reference_path_array[self.curve_start_idx, 0:2])
++            finish_point = 0.5 * (outer_finish_point - inner_finish_point) + inner_finish_point
++            curve_end_point = copy.deepcopy(reference_path_array[self.curve_end_idx, 0:2])
++            
++            ## Calculate small path
++            d_rad = (math.pi * curve_angle) /(self.curve_end_idx - self.curve_start_idx)
++            small_path = copy.deepcopy(reference_path_array)
++            raidus_vec = inner_forward_vec * carve_radius
++            center_point = curve_start_point[0:2] + raidus_vec
++            
++            for idx in range(self.curve_start_idx, self.curve_end_idx):
++                rotated_vec = np.array([raidus_vec[0] * np.cos(current_rad) - raidus_vec[1] * np.sin(current_rad),
++                                    raidus_vec[0] * np.sin(current_rad) + raidus_vec[1] * np.cos(current_rad)])
++                rotated_vec /= np.hypot(rotated_vec[0],rotated_vec[1])
++                small_path[idx][0] = center_point[0] + rotated_vec[0] * carve_radius
++                small_path[idx][1] = center_point[1] + rotated_vec[1] * carve_radius
++                current_rad +=  d_rad * curve_sign
++
++            #
++            small_path, add_idx = self._connect_path( 
++                    small_path , 
++                    self.curve_end_idx - 1 ,
++                    self.curve_end_idx + self.margin_idx,
++                    min_path_point_dist = 0.5)
++            self.logger.info("Path points num {}".format(len(small_path)))
++            
++            self.predicted_goal_pose = finish_point
++            ## Cut path
++            small_path_cut = small_path[self.curve_start_idx: self.curve_end_idx + add_idx]
++
++            self.logger.info("Path points num {}".format(len(small_path)))
++            new_path = self._store_array_into_path(
++                           reference_path,
++                           small_path_cut,
++                           self.curve_start_idx)
++            
++            self.curve_plot = small_path_cut
++            self.debug_point = np.array([
++                                         center_point,
++                                         curve_start_point,
++                                         outer_sharp_point 
++                                         #inner_finish_point,
++                                         #outer_finish_point,
++                                         #inner_start_mergin_point,
++                                         #inner_finish_mergin_point
++                                         ])
++            return new_path
++        
++    def reset_enable_planning(self):
++        self.enable_planning_flag = True
++        
++    def _store_array_into_path(self,
++                           new_path,
++                           predicted_path_array,
++                           start_idx
++                           ):
++        start_idx = max(start_idx, 1)
++        reference_points = copy.deepcopy(new_path.points)
++        z_value = reference_points[0].pose.position.z
++        new_path.points = []
++        ## store refrence path into new_path
++        for idx in range(start_idx):
++                new_path.points.append(reference_points[idx])
++        
++        ## store predicted path into new_path
++        for idx in range(len(predicted_path_array)):
++                pose = predicted_path_array[idx]
++                point = getPathPoint(pose,
++                                    self.curve_vel, 
++                                    self.curve_lateral_vel,
++                                    z_value=z_value)
++                yaw = getInterpolatedYawFromPoint(new_path.points[-1], point)
++                point.pose.orientation = getQuaternionFromEuler(yaw=yaw)
++                new_path.points.append(point)
++        return new_path
++
++    def _connect_path(self, 
++                      reference_path_array, 
++                      connect_start_idx,
++                      connect_end_idx,
++                      min_path_point_dist = 0.5):
++        connect_end_idx = min(connect_end_idx, len(reference_path_array) - 1)
++        # Connect_path
++        connect_vec = getNormVec(reference_path_array[connect_start_idx, 0:2], reference_path_array[connect_end_idx, 0:2]) * min_path_point_dist
++        connect_dist = calcDistancePoits(reference_path_array[connect_start_idx, 0:2], reference_path_array[connect_end_idx, 0:2])
++        connect_point_num = int(connect_dist / 0.5)
++        for idx in range(connect_point_num):
++            offset_idx = connect_start_idx + idx
++            if offset_idx > len(reference_path_array) - 1:
++                break
++            reference_path_array[offset_idx][0:2] = reference_path_array[offset_idx -1][0:2] + connect_vec
++        return reference_path_array,idx
++
++    def _smooth_path(self, 
++                    reference_path_array, 
++                    start_idx,
++                    end_idx,
++                    min_path_length = 0.001):
++        # Connect_path
++        end_idx = min(len(reference_path_array) - 2, end_idx)
++        for idx in reversed(range(start_idx, end_idx)):
++            dt = calcDistancePoits(reference_path_array[idx, 0:2], reference_path_array[idx + 1, 0:2])
++            if dt < min_path_length:
++                del reference_path_array[idx]
++        return reference_path_array
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/debug_plot.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/debug_plot.py
+new file mode 100644
+index 0000000..3251b7b
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/debug_plot.py
+@@ -0,0 +1,179 @@
++import math
++import numpy as np
++import matplotlib.pyplot as plt
++from matplotlib.patches import Rectangle
++
++class PlotMarker():
++    def __init__(self):
++        self.plot_width = 50
++        self.plot_forward = 20
++        self.plot_backward = 40
++        self.map_yaw = math.pi * 43/32
++
++        self.map_rot = np.array([[math.cos(self.map_yaw), math.sin(self.map_yaw)],
++                        [-math.sin(self.map_yaw), math.cos(self.map_yaw)]])     
++        self.map_rot_wh = np.array([[math.cos(self.map_yaw), 0],
++                                    [0, math.sin(self.map_yaw)]])
++        
++        self.ego_vec_length = 3
++        self.robot_length = 3.5
++        self.robot_width = 1.5
++
++    def plot_status(self,
++                    ego_pose = None,
++                    object_pose = None,
++                    left_bound = None,
++                    right_bound = None,
++                    path=None,
++                    path_index_left=None,
++                    path_index_next_left=None,
++                    path_index_right= None,
++                    path_index_next_right=None,
++                    rotation = False,
++                    predicted_goal_pose=None,
++                    predicted_trajectory=None,
++                    curve_plot=None,
++                    curve_forward_point=None,
++                    curve_backward_point=None,
++                    vis_point=None
++                    ):
++        
++        if ego_pose is not None:
++            plt.cla()
++
++            ego_pose_origin = ego_pose
++            if rotation:
++                ego_pose = np.array([0, 0])
++            
++            ## Plot ego pose
++            plot_xmin = ego_pose[0] - self.plot_width / 2.0
++            plot_xmax = ego_pose[0] + self.plot_width / 2.0
++            plot_ymin = ego_pose[1] - self.plot_backward/ 2.0
++            plot_ymax = ego_pose[1] + self.plot_forward / 2.0
++            plt.plot(ego_pose[0], ego_pose[1], "xr")
++
++            yaw = ego_pose_origin[2]
++            ego_rot = np.array([[math.cos(yaw), math.sin(yaw)],
++                            [-math.sin(yaw), math.cos(yaw)]])
++
++            outline = np.array([
++                               [-self.robot_length / 2, self.robot_length / 2,
++                                (self.robot_length / 2), -self.robot_length / 2,
++                                -self.robot_length / 2],
++                                [self.robot_width / 2, self.robot_width / 2,
++                                - self.robot_width / 2, -self.robot_width / 2,
++                                self.robot_width / 2]
++                                ])
++            outline = (outline.T.dot(ego_rot)).T
++            
++            outline[0, :] += ego_pose[0]
++            outline[1, :] += ego_pose[1]
++            plt.plot(np.array(outline[0, :]).flatten(),
++                    np.array(outline[1, :]).flatten(), "-k")
++            
++            ## Plot allow
++            ego_vec = np.array([np.cos(yaw), np.sin(yaw)]) * self.ego_vec_length
++            ego_vec = ego_pose[0:2] + ego_vec
++            trajec = np.array([[ego_pose[0], ego_pose[1]],
++                              [ego_vec[0], ego_vec[1]]])
++            plt.plot(trajec[:,0], trajec[:,1], "red")            
++
++            ## Plot object pose
++            if object_pose is not None:
++                for ob in object_pose:
++                    object_xy = ob[0:2] 
++                    object_wh = ob[2:4]
++                    if rotation:
++                        object_xy = object_xy[0:2] - ego_pose_origin[0:2] 
++                        object_xy = object_xy[0:2] @ self.map_rot
++                        object_wh = object_wh[0:2] @ self.map_rot_wh
++
++                    object_x_min = object_xy[0] - object_wh[0] / 2.0
++                    object_y_min = object_xy[1] - object_wh[1] / 2.0
++                    object_x_max = object_xy[0] + object_wh[0] / 2.0
++                    object_y_max = object_xy[1] + object_wh[1] / 2.0
++                    ob_box = np.array([[object_x_min, object_y_min],
++                                       [object_x_min, object_y_max],
++                                       [object_x_max, object_y_max],
++                                       [object_x_max, object_y_min],
++                                       [object_x_min, object_y_min]])
++
++                    plt.plot(ob_box[:,0], ob_box [:,1], "blue")
++
++            if path is not None:
++                self.plot_path(path)
++
++
++            ## Plot bound
++            if (left_bound is not None) and (right_bound is not None):
++                if rotation:
++                    left_bound = left_bound[:,0:2] - ego_pose_origin[0:2] 
++                    left_bound = left_bound[:,0:2] @ self.map_rot
++
++                    right_bound = right_bound[:,0:2] - ego_pose_origin[0:2] 
++                    right_bound = right_bound[:,0:2] @ self.map_rot
++
++                plt.plot(left_bound[:, 0], left_bound[:, 1], color="black")
++                plt.plot(right_bound[:,0], right_bound[:,1], color="black")
++
++                if (path_index_left is not None) and (path_index_right is not None):
++                    if path_index_next_left is None:
++                        path_index_next_left = path_index_left + 1
++                    if path_index_next_left is None:
++                        path_index_next_left = path_index_right + 1
++
++                    plt.plot(left_bound[path_index_left:path_index_next_left + 1 , 0], left_bound[path_index_left:path_index_next_left + 1, 1], color="green")
++                    plt.plot(right_bound[path_index_right:path_index_next_right + 1, 0], right_bound[path_index_right:path_index_next_right + 1, 1], color="green")
++
++            ## Plot goal pose
++            if predicted_goal_pose is not None:
++                self.plot_point(predicted_goal_pose)
++            
++            ## Plot trajectory
++            if predicted_trajectory is not None:
++                self.plot_traj(predicted_trajectory)
++
++            ## Plot curve path
++            if curve_plot is not None:
++                self.plot_red_line(curve_plot)
++            
++            if curve_forward_point is not None:
++                self.plot_point_delta(curve_forward_point)
++
++            if curve_backward_point is not None:
++                self.plot_point_delta(curve_backward_point)
++
++            if vis_point is not None:
++                self.vis_point(vis_point)
++
++
++            plt.xlim(plot_xmin, plot_xmax)
++            plt.ylim(plot_ymin, plot_ymax)
++            plt.pause(0.01)
++            #plt.show()
++
++        else:
++            return 
++
++    def plot_red_line(self, line):
++        plt.plot(line[:, 0], line[:, 1], color="Magenta")
++
++    def plot_path(self, path):
++        plt.plot(path[:, 0], path[:, 1], color="yellow", marker=".")
++        #plt.plot(path[:, 0], path[:, 1], color="yellow")
++
++    def plot_traj(self, traj):
++        plt.plot(traj[:, 0], traj[:, 1], color="green", marker="^")
++
++    def plot_point(self, point):
++        plt.plot(point[0], point[1], marker="x")
++    
++    def plot_point_delta(self, point):
++        plt.plot(point[0], point[1], marker="^",markersize=10)
++
++    def vis_point(selfm, point):
++        if len(point.shape) > 1:
++            plt.scatter(point[:,0], point[:, 1], s=20, marker="D")
++        else:
++            plt.plot(point[0], point[1], marker="8",markersize=8)
++        
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predict_path_generator.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predict_path_generator.py
+new file mode 100644
+index 0000000..1e792f9
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predict_path_generator.py
+@@ -0,0 +1,93 @@
++
++import numpy as np
++from .util import *
++from .config import DWA_Config
++from .predictor import DynamicWindowApproach
++
++class PathPredictor:
++    def __init__(self, logger, clock):
++        self.logger = logger
++        self.get_clock = clock
++
++        self.dwa_config = DWA_Config()
++        self.predictor = DynamicWindowApproach(self.dwa_config)
++        
++        self.min_point_dist = 2.0
++        self.vel = 0.5
++        self.min_diff_for_update = 0.1 **3
++
++        self.ego_pose_predicted = None
++        self.predicted_traj = None
++        self.output_traj = None
++
++    def predict_path_by_dwa(self, reference_path, ego_pose_array, predicted_goal_pose, object_pose, left_bound, right_bound,
++                            current_left_path_index, current_right_path_index):
++        new_path = reference_path
++
++        if self.ego_pose_predicted is None:
++            self.logger.info("Initialize the ego pose {}".format(np.rad2deg(ego_pose_array)))
++            self.ego_pose_predicted = np.array([ego_pose_array[0],
++                                                ego_pose_array[1], 
++                                                ego_pose_array[2],
++                                                0.0,
++                                                0.0,
++                                                ])
++        elif (abs(self.ego_pose_predicted[0] -ego_pose_array[0])< self.min_diff_for_update) or \
++            (abs(self.ego_pose_predicted[1] - ego_pose_array[1])  < self.min_diff_for_update):
++            self.logger.info("The ego pose has not updated yet...")
++            return self.output_traj
++
++        else:
++            self.logger.info("Update the ego pose {}".format(ego_pose_array))
++            self.logger.info("goal pose {}".format(predicted_goal_pose))
++            self.ego_pose_predicted[0] = ego_pose_array[0]
++            self.ego_pose_predicted[1] = ego_pose_array[1]
++            self.ego_pose_predicted[2] = ego_pose_array[2]
++
++
++        self.logger.info("Predict ego_pose {}".format(self.ego_pose_predicted))
++        u, predicted_traj = self.predictor.get_next_step(
++                self.ego_pose_predicted, 
++                predicted_goal_pose, 
++                object_pose, 
++                left_bound[current_left_path_index: current_left_path_index + 2], 
++                right_bound[current_right_path_index: current_right_path_index + 2])
++
++        if len(predicted_traj) == 0:
++            return
++
++        self.ego_pose_predicted[3] = u[0]
++        self.ego_pose_predicted[4] = u[1]
++        output_traj = Trajectory()
++        output_traj.points = convertPathToTrajectoryPoints(new_path, len(predicted_traj) + 1)
++        output_traj.header = new_path.header
++        output_traj.header.stamp = self.get_clock.now().to_msg()
++
++        point_dist = 0.0
++        calc_point = self.ego_pose_predicted[0:2]
++        
++        ignore_point = 0
++        output_traj.points[0].pose.position.x = ego_pose_array[0]
++        output_traj.points[0].pose.position.y = ego_pose_array[1]
++        output_traj.points[0].longitudinal_velocity_mps = self.vel
++        for idx in range(len(predicted_traj) -1):
++            dt = calcDistancePoits(predicted_traj[idx][0:2], calc_point[0:2])
++            point_dist += dt
++            if point_dist > self.min_point_dist:
++                output_traj.points[idx + 1].pose.position.x = predicted_traj[idx][0]
++                output_traj.points[idx + 1].pose.position.y = predicted_traj[idx][1]
++                output_traj.points[idx].pose.orientation = getQuaternionFromEuler(yaw=predicted_traj[idx][2])
++                output_traj.points[idx + 1].longitudinal_velocity_mps = self.vel
++                calc_point = predicted_traj[idx][0:2]
++                point_dist = 0.0
++            else:
++                ignore_point += 1
++
++        for _ in range(ignore_point):
++            output_traj.points.pop(-1)
++        
++        self.predicted_traj = predicted_traj
++        self.output_traj = output_traj
++        return output_traj
++
++
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predicted_objects_info.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predicted_objects_info.py
+new file mode 100644
+index 0000000..59f5f72
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predicted_objects_info.py
+@@ -0,0 +1,69 @@
++import numpy as np
++from autoware_auto_perception_msgs.msg import PredictedObjects
++from autoware_auto_perception_msgs.msg import PredictedObjectKinematics
++from autoware_auto_perception_msgs.msg import Shape
++
++import matplotlib.pyplot as plt
++
++
++class PredictedObjectsInfo:
++    def __init__(self, predicted_obj: PredictedObjects, show_objects_plot=False):
++        self.objects_poses = np.empty((0,2)) ## Store each points (x, y)
++        self.show_objects_plot = show_objects_plot
++        self.objects_rectangle = np.empty((0,4))
++        self.car_shape = [[1.0, 0.5],[-1.0, -0.5]]
++        self.objects_vis_box =  []
++
++        self.objects_labels = []
++        for idx in range(len(predicted_obj)):
++            ob = predicted_obj[idx]
++            ## Get 2-D pose
++            pose = self._getInitialPosesfromPredictedObjectKinematics(ob.kinematics)
++            self.objects_poses = np.vstack([self.objects_poses, pose])
++
++            ## Get object shape
++            shape_array = self._getShapeArrayfromPredictedObjectKinematics(ob.shape)
++            
++            if len(shape_array) == 0:
++                shape_array = self.car_shape
++
++            object_points = shape_array  + pose
++
++            xmin = np.min(object_points[:, 0])
++            ymin = np.min(object_points[:, 1])
++            xmax = np.max(object_points[:, 0])
++            ymax = np.max(object_points[:, 1])
++            cx = (xmax + xmin)/ 2.0
++            cy = (ymax + ymin)/ 2.0
++            length_x = abs(xmax - xmin)
++            length_y = abs(ymax - ymin)
++            rect = np.array([cx, cy ,length_x ,length_y])
++            vis_box = [[xmin, ymin], [xmin, ymax], [xmax, ymax], [xmax, ymin], [xmin, ymin]]
++
++            self.objects_vis_box.append(vis_box)
++            self.objects_rectangle = np.vstack([self.objects_rectangle, rect])
++
++            if self.show_objects_plot:
++                object_points = np.vstack([object_points, object_points[0]])
++                self.show_objects(self.objects_rectangle)
++
++        if self.objects_vis_box is not None:
++            self.objects_vis_box = np.array(self.objects_vis_box)
++
++    def _getInitialPosesfromPredictedObjectKinematics(self, kinematics: PredictedObjectKinematics):
++        x = kinematics.initial_pose_with_covariance.pose.position.x
++        y = kinematics.initial_pose_with_covariance.pose.position.y
++        return np.array([x, y])
++    
++
++    def _getShapeArrayfromPredictedObjectKinematics(self, ob_shape: Shape):
++        shape_array = np.empty((0,2))
++        for idx in range(len(ob_shape.footprint.points)):
++            p = ob_shape.footprint.points[idx]
++            shape_array = np.vstack([shape_array, [p.x, p.y]])
++        return shape_array
++    
++
++    def show_objects(self, object_points):
++        plt.plot(object_points[:,0],object_points[:,1])
++        plt.show()
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/__init__.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/__init__.py
+new file mode 100644
+index 0000000..2d6572e
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/__init__.py
+@@ -0,0 +1 @@
++from .dynamic_window_approach import DynamicWindowApproach
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/dynamic_window_approach.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/dynamic_window_approach.py
+new file mode 100644
+index 0000000..79f2d88
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/predictor/dynamic_window_approach.py
+@@ -0,0 +1,250 @@
++import math
++import numpy as np
++
++class DynamicWindowApproach:
++    def __init__(self, cfg):
++        ## Robot parameter
++        self.min_speed = cfg.min_speed
++        self.max_speed = cfg.max_speed
++        self.max_yaw_rate = cfg.max_yaw_rate
++        self.max_yaw_rate = cfg.max_yaw_rate
++        self.max_accel = cfg.max_accel
++        self.max_delta_yaw_rate = cfg.max_delta_yaw_rate
++        
++        self.dt = cfg.dt
++        
++        ## Search range
++        self.v_resolution = cfg.v_resolution
++        self.yaw_rate_resolution = cfg.yaw_rate_resolution
++        
++        ## Cost weights
++        self.speed_cost_gain = cfg.speed_cost_gain
++        self.to_goal_cost_gain = cfg.to_goal_cost_gain
++        self.obstacle_cost_gain = cfg.obstacle_cost_gain
++        self.path_cost_gain = cfg.path_cost_gain
++        
++        # If the distance between object and robot more than threshold , cost is ignored.
++        self.ob_dist_threshold = cfg.ob_dist_threshold
++        self.path_dist_threshold = cfg.path_dist_threshold
++        self.ob_penalty = cfg.ob_penalty
++        self.path_penalty = cfg.path_penalty
++        
++        ## Trajectory precition time 
++        self.predict_time = cfg.predict_time
++    
++        ## Robot param
++        self.robot_radius = cfg.robot_radius # [m]
++        self.robot_width = cfg.robot_width  # [m]
++        self.robot_length = cfg.robot_length  # [m]
++        self.robot_stuck_flag_cons = cfg.robot_stuck_flag_cons
++        
++    def get_next_step(self, x, goal, obstacle, left_bound, right_bound):
++        """
++        Return next control and trajectory
++        """
++        
++        # Calcuration dynamic window by self property
++        motion_dw = self._calc_dynamic_window(x)
++        
++        u, trajectory = self.calc_control_and_trajectory(x, motion_dw, goal,  obstacle, left_bound, right_bound)
++        return u, trajectory
++    
++    
++    def _calc_dynamic_window(self, x):
++        """
++        Calculation dynamic window based on current state x
++        """
++
++        ## Dynamic window from robot specification
++        Vs = [self.min_speed, self.max_speed,
++            -self.max_yaw_rate, self.max_yaw_rate]
++
++        ## Dynamic window from motion model
++        Vd = [x[3] - self.max_accel * self.dt,
++            x[3] + self.max_accel * self.dt,
++            x[4] - self.max_delta_yaw_rate * self.dt,
++            x[4] + self.max_delta_yaw_rate * self.dt]
++
++        #  [v_min, v_max, yaw_rate_min, yaw_rate_max]
++        dw = [max(Vs[0], Vd[0]), min(Vs[1], Vd[1]),
++            max(Vs[2], Vd[2]), min(Vs[3], Vd[3])]
++
++        return dw
++    
++
++    def calc_control_and_trajectory(self, x, dw, goal, ob, left_bound, right_bound):
++        """
++        Calculation final input with dynamic window
++        """
++        x_init = x[:]
++        min_cost = float("inf")
++        best_u = [0.0, 0.0]
++        best_trajectory = np.array([x])
++
++        ## Evaluate all trajectory with sampled input in dynamic window
++        for v in np.arange(dw[0], dw[1], self.v_resolution):
++            for y in np.arange(dw[2], dw[3], self.yaw_rate_resolution):
++                
++                ## Get next trajectory
++                trajectory = self.predict_trajectory(x_init, v, y)
++                
++                ## Calculate cost
++                to_goal_cost = self.to_goal_cost_gain * self._calc_target_heading_cost(trajectory[-1], goal)
++                speed_cost = self.speed_cost_gain * (self.max_speed - trajectory[-1, 3])
++
++                ob_cost, tp_idx_obj = self._calc_obstacle_cost(
++                    trajectory, ob, dist_threshold=self.ob_dist_threshold, penalty=self.ob_penalty)
++                
++                path_cost, tp_idx_path = self._calc_path_cost(
++                        trajectory, left_bound, right_bound, dist_threshold=self.path_dist_threshold, penalty=self.path_penalty)
++
++                tp_idx = min(tp_idx_obj, tp_idx_path)
++                trajectory = trajectory[:tp_idx]
++
++                final_cost = to_goal_cost + speed_cost + self.obstacle_cost_gain * ob_cost + self.path_cost_gain * path_cost
++
++                # search minimum trajectory
++                if min_cost >= final_cost:
++                    min_cost = final_cost
++                    best_u = [v, y]
++                    best_trajectory = trajectory
++                    if abs(best_u[0]) < self.robot_stuck_flag_cons \
++                            and abs(x[3]) < self.robot_stuck_flag_cons:
++                        # to ensure the robot do not get stuck in
++                        # best v=0 m/s (in front of an obstacle) and
++                        # best omega=0 rad/s (heading to the goal with
++                        # angle difference of 0)
++                        best_u[1] = -self.max_delta_yaw_rate
++        print(min_cost)
++        return best_u, best_trajectory
++    
++    
++    def predict_trajectory(self, x_init, v, y):
++        """
++        Predict next trajectory
++        """
++
++        x = np.array(x_init)
++        trajectory = np.array(x)
++        time = 0
++        while time <= self.predict_time:
++            x = self._motion(x, [v, y], self.dt)
++            trajectory = np.vstack((trajectory, x))
++            time += self.dt
++
++        return trajectory
++
++
++    def _motion(self, x, u, dt):
++        """
++        Calculate motion model
++        """
++        x[0] += u[0] * math.cos(x[2]) * dt
++        x[1] += u[0] * math.sin(x[2]) * dt
++        x[2] += u[1] * dt
++        x[3] = u[0]
++        x[4] = u[1]
++        return x
++
++
++    def _calc_target_heading_cost(self, final_pose, target):
++        """
++            heading is a measure of progress towards the
++            goal location. It is maximal if the robot moves directly towards the target.
++        """
++        dx = target[0] - final_pose[0]
++        dy = target[1] - final_pose[1]
++        error_angle = math.atan2(dy, dx)
++        cost_angle = error_angle - final_pose[2]
++        cost = abs(math.atan2(math.sin(cost_angle), math.cos(cost_angle)))
++        return cost
++
++
++    def _calc_obstacle_cost(self, trajectory, objects, dist_threshold=5.0, penalty=-1):        
++        object_xy = objects[:, 0:2]
++        object_r = 2.0
++        
++        min_dist = float("Inf")
++        if penalty == -1:
++            penalty = float("Inf")
++       
++        ## Distance between object and trajectory points
++        for idx, tp in enumerate(trajectory):
++            ox = objects[:, 0]
++            oy = objects[:, 1]
++            dx = tp[0] - ox
++            dy = tp[1] - oy
++            dist = np.hypot(dx, dy)
++            
++            # Mask with distance
++            mask = dist < dist_threshold
++            object_xy_mask = object_xy[mask, :]
++            
++            if not object_xy_mask.any():
++                dist = 1000
++
++            if min_dist < np.min(dist):
++                min_dist = dist
++                
++            collision_mask = object_r > dist
++            object_xy_collision = object_xy[collision_mask, :]
++            check = object_xy_collision.any()
++            if check:
++                return penalty, idx
++            
++        return 1.0 / min_dist, len(trajectory) # OK
++        
++
++    def _calc_path_cost(self, trajectory, left_bound, right_bound, path_point_size=0.1, dist_threshold=5.0, penalty=-1):
++
++        left_bound_vec = np.diff(left_bound, axis=0)
++        right_bound_vec = np.diff(right_bound, axis=0)
++
++        if penalty == -1:
++            penalty = float("Inf")
++        min_dist = float("Inf")
++
++        ## Distance between object and trajectory points
++        ## If teh outer product is >  0, the point is to the left of the bound.
++        ## and if teh outer product is <  0, the point is to the right of the bound.
++        for idx, tp in enumerate(trajectory):
++            tp_point = np.array([tp[0], tp[1]])
++            tp_vec_left = tp_point - left_bound[:, 0:2]
++            tp_vec_right = tp_point - right_bound[:, 0:2]
++            left_check = np.cross(left_bound_vec, tp_vec_left[:len(left_bound_vec), 0:2])
++            right_check = np.cross(right_bound_vec, tp_vec_right[:len(right_bound_vec), 0:2])
++            
++
++            ## Calc distance between trajectory_pose and lef_bound using traiangle area 
++            for ii, v in enumerate(left_bound_vec):
++                traiangle_bottom = np.hypot(v[0], v[1])
++                p1 = left_bound[ii]
++                p2 = left_bound[ii + 1]
++                triangle_area = self._calcTriangleArea(tp[0], tp[1], p1[0], p1[1], p2[0], p2[1])
++                dist = (triangle_area * 2) / traiangle_bottom
++                if min_dist > dist:
++                    min_dist = dist
++                    
++            ## Calc distance between trajectory_pose and right_bound using traiangle area 
++            for ii, v in enumerate(right_bound_vec):
++                traiangle_bottom = np.hypot(v[0], v[1])
++                p1 = right_bound[ii]
++                p2 = right_bound[ii + 1]
++                triangle_area = self._calcTriangleArea(tp[0], tp[1], p1[0], p1[1], p2[0], p2[1])
++                dist = (triangle_area * 2) / traiangle_bottom
++                
++                if min_dist > dist:
++                    min_dist = dist
++
++             ## If any points is beyond left_bound.
++            if np.any(left_check > 0):
++                return min_dist, idx
++            
++            if np.any(right_check < 0):
++                return min_dist, idx
++            
++        return 1.0 / min_dist, len(trajectory)  # OK
++    
++
++    def _calcTriangleArea(self, x1, y1, x2, y2, x3, y3):
++        return 0.5 * abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/__init__.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/__init__.py
+new file mode 100644
+index 0000000..0df1173
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/__init__.py
+@@ -0,0 +1,5 @@
++
++from .trajectory_uitl import *
++from .numpy_calc_util import *
++from .path_util import *
++from .ros_calc_util import *
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/numpy_calc_util.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/numpy_calc_util.py
+new file mode 100644
+index 0000000..1ef532f
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/numpy_calc_util.py
+@@ -0,0 +1,88 @@
++import numpy as np
++
++def calcDistancePoits(point_a: list, point_b: list) -> float:
++    """
++    Calculate distance between point_a and point_b.
++    """
++    if len(point_a) != len(point_b):
++        return None
++    return np.linalg.norm(np.array(point_a) - np.array(point_b))
++
++
++def calcDistancePoitsFromArray(point_a: np.array, points: np.array) -> np.array:
++    """
++    Calculate distance between point_a and mutliple points.
++    """
++    dist = points[:, 0:2] - point_a[0:2]
++    dist = np.hypot(dist[:, 0], dist[:, 1])
++    return dist
++
++
++def getNearestPointIndex(point: np.array, points: np.array) -> int:
++    """
++    Find th nearest point from points array.
++    """
++    dist =  calcDistancePoitsFromArray(point, points)
++    return dist.argmin()
++
++
++def getInterpolatedYaw(p1, p2) -> np.array:
++    """
++    Calc yaw from two points.
++    """
++    diff_x = p2[0] - p1[0]
++    diff_y = p2[1] - p1[1]
++    return np.arctan2(diff_y, diff_x)
++
++
++def getCrossPoint(p1: np.array, vec1: np.array, p2: np.array, vec2: np.array) -> np.array:
++    """
++    Get cross point.
++    """
++    d = vec1[0] * vec2[1] - vec2[0] * vec1[1]
++    if d == 0:
++         return None
++    sn = vec2[1] * (p2[0] - p1[0]) - vec2[0] * (p2[1] - p1[1])
++    print(sn / d)
++    return np.array([p1[0] + vec1[0] * (sn / d), p1[1] + vec1[1] * (sn / d)])
++
++
++def getNormVec(p: np.array, q: np.array) -> np.array:
++    """
++    Get normalize vector from two points
++    """
++    vec = q - p
++    vec /= np.hypot(vec[0], vec[1])
++    return vec
++
++
++def getTriangleSize(p1: np.array, p2: np.array, p3: np.array) -> float:
++    """
++    Get triangle size from three points
++    """
++    return 0.5 * abs(p1[0] * (p2[1] - p3[1]) + p2[0] * (p3[1] - p1[1]) + p3[0] * (p1[1] - p2[1]))
++
++def getCosFromLines(p1: np.array, p2: np.array, p3: np.array) -> float:
++    """
++    Get cos from three points
++    """
++    vec_1 = p1 - p2
++    vec_2= p3 - p2
++    d1  = np.hypot(vec_1[0], vec_1[1])
++    d2  = np.hypot(vec_2[0], vec_2[1])
++    cos = np.dot(vec_1, vec_2) / (d1 * d2)
++    return cos
++
++def getRoadWidth(inner_bound: np.array, outer_bound: np.array, diag_idx: int, sharp_idx: int) -> float:
++    """
++    Calculate the width of road afeter curve
++    """
++
++    inner_backward_vec = getNormVec(inner_bound[diag_idx], inner_bound[diag_idx - 1])
++    outer_forward_vec = getNormVec(outer_bound[sharp_idx], outer_bound[sharp_idx + 1])
++    inner_finish_point = inner_bound[diag_idx + 1]
++    outer_finish_point = getCrossPoint(inner_bound[diag_idx + 1], 
++                                            -1 *inner_backward_vec,
++                                            outer_bound[sharp_idx],
++                                            outer_forward_vec)
++    return calcDistancePoits(outer_finish_point, inner_finish_point)
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/path_util.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/path_util.py
+new file mode 100644
+index 0000000..2cb5aa9
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/path_util.py
+@@ -0,0 +1,24 @@
++import numpy as np
++from autoware_auto_planning_msgs.msg import Path, PathPoint
++
++from .numpy_calc_util import *
++from .ros_calc_util import *
++
++def getPathPoint(pose_array: np.array, longitudinal_vel: float, lateral_vel: float, z_value=0.0):
++    path_point = PathPoint()
++    path_point.pose.position.x = pose_array[0]
++    path_point.pose.position.y = pose_array[1]
++    path_point.pose.position.z = z_value
++    path_point.longitudinal_velocity_mps  = longitudinal_vel
++    path_point.lateral_velocity_mps  = lateral_vel
++    return path_point
++
++##
++def ConvertPath2Array(path: Path) -> np.array:
++    new_path = np.empty((0,3))
++    for idx in range(len(path.points)):
++        x = path.points[idx].pose.position.x
++        y = path.points[idx].pose.position.y
++        yaw = getYawFromQuaternion(path.points[idx].pose.orientation)
++        new_path = np.vstack([new_path, np.array([x, y, yaw])])
++    return new_path
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/ros_calc_util.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/ros_calc_util.py
+new file mode 100644
+index 0000000..5191f83
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/ros_calc_util.py
+@@ -0,0 +1,52 @@
++import numpy as np
++import math 
++from geometry_msgs.msg import Point, Quaternion
++
++def ConvertPoint2List(p) -> np.array:
++    """
++    Convert Point.msg into numpu.array
++    """
++    yaw = getYawFromQuaternion(p.orientation)
++    return np.array([p.position.x, p.position.y, yaw])
++
++
++def getYawFromQuaternion(orientation: Quaternion):
++    """
++    Calculate yaw from quaternion
++    """
++    siny_cosp = 2 * (orientation.w * orientation.z + orientation.x * orientation.y)
++    cosy_cosp = 1 - 2 * (orientation.y * orientation.y + orientation.z * orientation.z)
++    return np.arctan2(siny_cosp, cosy_cosp)
++
++def ConvertPointSeq2Array(points: list) -> np.array:
++    """
++    Convert the list of Point.msg  into numpy array
++    """
++    k = []
++    for i in range(len(points)):
++        k.append([points[i].x, points[i].y])
++    return np.array(k)
++
++def getQuaternionFromEuler(roll: float =0, pitch :float =0 ,yaw :float =0) -> Quaternion:
++    """
++    Convert Euler into Quaternion
++    """
++    q = Quaternion()
++    cy = math.cos(yaw * 0.5)
++    sy = math.sin(yaw * 0.5)
++    cp = math.cos(pitch * 0.5)
++    sp = math.sin(pitch * 0.5)
++    cr = math.cos(roll * 0.5)
++    sr = math.sin(roll * 0.5)
++
++    q.w = cy * cp * cr + sy * sp * sr
++    q.x = cy * cp * sr - sy * sp * cr
++    q.y = sy * cp * sr + cy * sp * cr
++    q.z = sy * cp * cr - cy * sp * sr
++    return q
++
++def getInterpolatedYawFromPoint(p1, p2):
++    diff_x = p2.pose.position.x - p1.pose.position.x
++    diff_y = p2.pose.position.y - p1.pose.position.y
++    return np.arctan2(diff_y, diff_x)
++
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/trajectory_uitl.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/trajectory_uitl.py
+new file mode 100644
+index 0000000..1a8e7c0
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/crank_driving_planner/util/trajectory_uitl.py
+@@ -0,0 +1,46 @@
++
++from autoware_auto_planning_msgs.msg import Trajectory, Path, TrajectoryPoint, PathPoint
++from geometry_msgs.msg import Point, Quaternion
++import math
++import numpy as np
++
++from .numpy_calc_util import *
++from .ros_calc_util import *
++
++
++def getVelocityPointsFromTrajectory(trajctory: Trajectory) -> list:
++    points_vel_list = []
++    for p in trajctory.points:
++        points_vel_list.append(p.longitudinal_velocity_mps)
++    return points_vel_list
++
++def getPosesFromTrajectory(trajctory: Trajectory) -> list:
++    points_pose_list = []
++    for p in trajctory.points: 
++            points_pose_list.append(ConvertPoint2List(p.pose.position))
++    return points_pose_list
++
++def getAccelPointsFromTrajectory(trajctory: Trajectory) -> list:
++    points_accel_list = []
++    for p in trajctory.points: 
++            points_accel_list.append(p.acceleration_mps2)
++    return points_accel_list
++
++def convertPathToTrajectoryPoints(path: Path, 
++                                start_idx=0,
++                                end_idx=100):
++    start_idx = max(start_idx, 0)
++    end_idx = min(end_idx, len(path.points) - 1)
++    tps = []
++    for idx in reversed(range(start_idx, end_idx)):
++        p = path.points[idx]
++        tp = TrajectoryPoint()
++        tp.pose = p.pose
++        tp.longitudinal_velocity_mps = p.longitudinal_velocity_mps
++        tp.acceleration_mps2 = 0.0
++        tps.append(tp)
++    return tps
++
++
++    
++
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/aichallenge_submit.launch.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/aichallenge_submit.launch.xml
+new file mode 100644
+index 0000000..78d08c5
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/aichallenge_submit.launch.xml
+@@ -0,0 +1,24 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<launch>
++    <!-- Autoware -->
++    <include file="$(find-pkg-share autoware_launch)/launch/e2e_simulator.launch.xml">
++        <arg name="vehicle_model" value="golfcart"/>
++        <arg name="sensor_model" value="awsim_sensor_kit"/>
++        <arg name="map_path" value="/aichallenge/mapfile"/>
++        <arg name="rviz" value="false"/>
++    </include>
++
++    <!-- Uncomment the following lines to try Autoware-Mini -->
++    <!-- <include file="$(find-pkg-share aichallenge_submit_launch)/launch/autoware_mini_awsim.launch.xml" >
++      <arg name="vehicle_model" value="golfcart"/>
++      <arg name="sensor_model" value="awsim_sensor_kit"/>
++      <arg name="map_path" value="/aichallenge/mapfile"/>
++      <arg name="rviz" value="false"/>
++    </include> -->
++
++    <include file="$(find-pkg-share initialpose_publisher)/launch/initialpose_publisher.launch.xml" />
++
++    <include file="$(find-pkg-share self_driving_controller)/launch/self_driving_controller.launch.xml" />
++
++    <include file="$(find-pkg-share crank_driving_planner)/crank_driving_planner.launch.xml" />
++</launch>
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/crank_driving_planner.launch.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/crank_driving_planner.launch.xml
+new file mode 100644
+index 0000000..d3f5d4a
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/crank_driving_planner.launch.xml
+@@ -0,0 +1,18 @@
++<launch>
++  
++  <arg name="input_crank_driving_path" default="/planning/scenario_planning/lane_driving/behavior_planning/path"/>
++  <arg name="input_acceleration" default="/localization/acceleration"/>
++  <arg name="input_odometry" default="/localization/kinematic_state"/>
++  <arg name="input_perception" default="/perception/object_recognition/objects"/>
++  <arg name="output_crank_driving_path" default="/crank_driving_planner/path"/>
++  <arg name="output_crank_driving_traj" default="/planning/scenario_planning/lane_driving/trajectory"/>
++
++  <node pkg="crank_driving_planner" exec="crank_driving_planner_node" name="crank_driving_planner" output="screen">
++    <remap from="~/input/path" to="$(var input_crank_driving_path)"/>
++    <remap from="~/input/acceleration" to="$(var input_acceleration)"/>
++    <remap from="~/input/odometry" to="$(var input_odometry)"/>
++    <remap from="~/input/perception" to="$(var input_perception)"/>
++    <remap from="~/output/path" to="$(var output_crank_driving_path)"/>
++    <remap from="~/output/trajectory" to="$(var output_crank_driving_traj)"/>
++  </node>
++</launch>
+\ No newline at end of file
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/motion_planning.launch.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/motion_planning.launch.py
+new file mode 100644
+index 0000000..3a1e82b
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/launch/motion_planning.launch.py
+@@ -0,0 +1,299 @@
++# Copyright 2021 Tier IV, Inc. All rights reserved.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++import launch
++from launch.actions import DeclareLaunchArgument
++from launch.actions import GroupAction
++from launch.actions import OpaqueFunction
++from launch.actions import SetLaunchConfiguration
++from launch.conditions import IfCondition
++from launch.conditions import LaunchConfigurationEquals
++from launch.conditions import UnlessCondition
++from launch.substitutions import LaunchConfiguration
++from launch_ros.actions import ComposableNodeContainer
++from launch_ros.actions import LoadComposableNodes
++from launch_ros.descriptions import ComposableNode
++import yaml
++
++
++def launch_setup(context, *args, **kwargs):
++    # vehicle information param path
++    vehicle_info_param_path = LaunchConfiguration("vehicle_param_file").perform(context)
++    with open(vehicle_info_param_path, "r") as f:
++        vehicle_info_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++
++    # planning common param path
++    with open(LaunchConfiguration("common_param_path").perform(context), "r") as f:
++        common_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++
++    # nearest search parameter
++    with open(LaunchConfiguration("nearest_search_param_path").perform(context), "r") as f:
++        nearest_search_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++
++    # obstacle avoidance planner
++    with open(
++        LaunchConfiguration("obstacle_avoidance_planner_param_path").perform(context), "r"
++    ) as f:
++        obstacle_avoidance_planner_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    obstacle_avoidance_planner_component = ComposableNode(
++        package="obstacle_avoidance_planner",
++        plugin="obstacle_avoidance_planner::ObstacleAvoidancePlanner",
++        name="obstacle_avoidance_planner",
++        namespace="",
++        remappings=[
++            ("~/input/path", LaunchConfiguration("input_path_topic")),
++            ("~/input/odometry", "/localization/kinematic_state"),
++            ("~/output/path", "obstacle_avoidance_planner/trajectory"),
++        ],
++        parameters=[
++            nearest_search_param,
++            obstacle_avoidance_planner_param,
++            vehicle_info_param,
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    # obstacle velocity limiter
++    with open(
++        LaunchConfiguration("obstacle_velocity_limiter_param_path").perform(context), "r"
++    ) as f:
++        obstacle_velocity_limiter_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    obstacle_velocity_limiter_component = ComposableNode(
++        package="obstacle_velocity_limiter",
++        plugin="obstacle_velocity_limiter::ObstacleVelocityLimiterNode",
++        name="obstacle_velocity_limiter",
++        namespace="",
++        remappings=[
++            ("~/input/trajectory", "obstacle_avoidance_planner/trajectory"),
++            ("~/input/odometry", "/localization/kinematic_state"),
++            ("~/input/dynamic_obstacles", "/perception/object_recognition/objects"),
++            ("~/input/occupancy_grid", "/perception/occupancy_grid_map/map"),
++            ("~/input/obstacle_pointcloud", "/perception/obstacle_segmentation/pointcloud"),
++            ("~/input/map", "/map/vector_map"),
++            ("~/output/debug_markers", "debug_markers"),
++            ("~/output/trajectory", "obstacle_velocity_limiter/trajectory"),
++        ],
++        parameters=[
++            obstacle_velocity_limiter_param,
++            vehicle_info_param,
++            {"obstacles.dynamic_source": "static_only"},
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    # surround obstacle checker
++    with open(
++        LaunchConfiguration("surround_obstacle_checker_param_path").perform(context), "r"
++    ) as f:
++        surround_obstacle_checker_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    surround_obstacle_checker_component = ComposableNode(
++        package="surround_obstacle_checker",
++        plugin="surround_obstacle_checker::SurroundObstacleCheckerNode",
++        name="surround_obstacle_checker",
++        namespace="",
++        remappings=[
++            ("~/output/no_start_reason", "/planning/scenario_planning/status/no_start_reason"),
++            ("~/output/stop_reasons", "/planning/scenario_planning/status/stop_reasons"),
++            ("~/output/max_velocity", "/planning/scenario_planning/max_velocity_candidates"),
++            (
++                "~/output/velocity_limit_clear_command",
++                "/planning/scenario_planning/clear_velocity_limit",
++            ),
++            (
++                "~/input/pointcloud",
++                "/perception/obstacle_segmentation/pointcloud",
++            ),
++            ("~/input/objects", "/perception/object_recognition/objects"),
++            ("~/input/odometry", "/localization/kinematic_state"),
++        ],
++        parameters=[
++            surround_obstacle_checker_param,
++            vehicle_info_param,
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    # obstacle stop planner
++    with open(LaunchConfiguration("obstacle_stop_planner_param_path").perform(context), "r") as f:
++        obstacle_stop_planner_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    with open(
++        LaunchConfiguration("obstacle_stop_planner_acc_param_path").perform(context), "r"
++    ) as f:
++        obstacle_stop_planner_acc_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    obstacle_stop_planner_component = ComposableNode(
++        package="obstacle_stop_planner",
++        plugin="motion_planning::ObstacleStopPlannerNode",
++        name="obstacle_stop_planner",
++        namespace="",
++        remappings=[
++            ("~/output/stop_reason", "/planning/scenario_planning/status/stop_reason"),
++            ("~/output/stop_reasons", "/planning/scenario_planning/status/stop_reasons"),
++            ("~/output/max_velocity", "/planning/scenario_planning/max_velocity_candidates"),
++            (
++                "~/output/velocity_limit_clear_command",
++                "/planning/scenario_planning/clear_velocity_limit",
++            ),
++            ("~/output/trajectory", "/planning/scenario_planning/lane_driving/trajectory"),
++            ("~/input/acceleration", "/localization/acceleration"),
++            (
++                "~/input/pointcloud",
++                "/perception/obstacle_segmentation/pointcloud",
++            ),
++            ("~/input/objects", "/perception/object_recognition/objects"),
++            ("~/input/odometry", "/localization/kinematic_state"),
++            ("~/input/trajectory", "obstacle_velocity_limiter/trajectory"),
++        ],
++        parameters=[
++            nearest_search_param,
++            common_param,
++            obstacle_stop_planner_param,
++            obstacle_stop_planner_acc_param,
++            vehicle_info_param,
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    # obstacle cruise planner
++    with open(LaunchConfiguration("obstacle_cruise_planner_param_path").perform(context), "r") as f:
++        obstacle_cruise_planner_param = yaml.safe_load(f)["/**"]["ros__parameters"]
++    obstacle_cruise_planner_component = ComposableNode(
++        package="obstacle_cruise_planner",
++        plugin="motion_planning::ObstacleCruisePlannerNode",
++        name="obstacle_cruise_planner",
++        namespace="",
++        remappings=[
++            ("~/input/trajectory", "obstacle_velocity_limiter/trajectory"),
++            ("~/input/odometry", "/localization/kinematic_state"),
++            ("~/input/acceleration", "/localization/acceleration"),
++            ("~/input/objects", "/perception/object_recognition/objects"),
++            ("~/output/trajectory", "/planning/scenario_planning/lane_driving/trajectory"),
++            ("~/output/velocity_limit", "/planning/scenario_planning/max_velocity_candidates"),
++            ("~/output/clear_velocity_limit", "/planning/scenario_planning/clear_velocity_limit"),
++            ("~/output/stop_reasons", "/planning/scenario_planning/status/stop_reasons"),
++        ],
++        parameters=[
++            nearest_search_param,
++            common_param,
++            obstacle_cruise_planner_param,
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    obstacle_cruise_planner_relay_component = ComposableNode(
++        package="topic_tools",
++        plugin="topic_tools::RelayNode",
++        name="obstacle_cruise_planner_relay",
++        namespace="",
++        parameters=[
++            {"input_topic": "obstacle_velocity_limiter/trajectory"},
++            {"output_topic": "/planning/scenario_planning/lane_driving/trajectory"},
++            {"type": "autoware_auto_planning_msgs/msg/Trajectory"},
++        ],
++        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
++    )
++
++    container = ComposableNodeContainer(
++        name="motion_planning_container",
++        namespace="",
++        package="rclcpp_components",
++        executable=LaunchConfiguration("container_executable"),
++        composable_node_descriptions=[
++            obstacle_avoidance_planner_component,
++            obstacle_velocity_limiter_component,
++        ],
++    )
++
++    obstacle_stop_planner_loader = LoadComposableNodes(
++        composable_node_descriptions=[obstacle_stop_planner_component],
++        target_container=container,
++        condition=LaunchConfigurationEquals("cruise_planner_type", "obstacle_stop_planner"),
++    )
++
++    obstacle_cruise_planner_loader = LoadComposableNodes(
++        composable_node_descriptions=[obstacle_cruise_planner_component],
++        target_container=container,
++        condition=LaunchConfigurationEquals("cruise_planner_type", "obstacle_cruise_planner"),
++    )
++
++    obstacle_cruise_planner_relay_loader = LoadComposableNodes(
++        composable_node_descriptions=[obstacle_cruise_planner_relay_component],
++        target_container=container,
++        condition=LaunchConfigurationEquals("cruise_planner_type", "none"),
++    )
++
++    surround_obstacle_checker_loader = LoadComposableNodes(
++        composable_node_descriptions=[surround_obstacle_checker_component],
++        target_container=container,
++        condition=IfCondition(LaunchConfiguration("use_surround_obstacle_check")),
++    )
++
++    group = GroupAction(
++        [
++            container,
++            obstacle_stop_planner_loader,
++            obstacle_cruise_planner_loader,
++            obstacle_cruise_planner_relay_loader,
++            surround_obstacle_checker_loader,
++        ]
++    )
++    return [group]
++
++
++def generate_launch_description():
++    launch_arguments = []
++
++    def add_launch_arg(name: str, default_value=None, description=None):
++        launch_arguments.append(
++            DeclareLaunchArgument(name, default_value=default_value, description=description)
++        )
++
++    # vehicle parameter
++    add_launch_arg("vehicle_param_file")
++
++    # interface parameter
++    add_launch_arg(
++        "input_path_topic",
++        #"/planning/scenario_planning/lane_driving/behavior_planning/path",
++        "/crank_driving_planner/path",
++        "input path topic of obstacle_avoidance_planner",
++    )
++
++    # package parameter
++    add_launch_arg("use_surround_obstacle_check")  # launch surround_obstacle_checker or not
++    add_launch_arg(
++        "cruise_planner_type"
++    )  # select from "obstacle_stop_planner", "obstacle_cruise_planner", "none"
++
++    add_launch_arg("use_intra_process", "false", "use ROS2 component container communication")
++    add_launch_arg("use_multithread", "false", "use multithread")
++
++    set_container_executable = SetLaunchConfiguration(
++        "container_executable",
++        "component_container",
++        condition=UnlessCondition(LaunchConfiguration("use_multithread")),
++    )
++    set_container_mt_executable = SetLaunchConfiguration(
++        "container_executable",
++        "component_container_mt",
++        condition=IfCondition(LaunchConfiguration("use_multithread")),
++    )
++
++    return launch.LaunchDescription(
++        launch_arguments
++        + [
++            set_container_executable,
++            set_container_mt_executable,
++        ]
++        + [OpaqueFunction(function=launch_setup)]
++    )
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/package.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/package.xml
+new file mode 100644
+index 0000000..57bf8cb
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/package.xml
+@@ -0,0 +1,23 @@
++<?xml version="1.0"?>
++<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
++<package format="3">
++  <name>crank_driving_planner</name>
++  <version>0.0.0</version>
++  <description>TODO: Package description</description>
++  <maintainer email="satoshi@todo.todo">satoshi</maintainer>
++  <license>TODO: License declaration</license>
++
++  <test_depend>ament_copyright</test_depend>
++  <test_depend>ament_flake8</test_depend>
++  <test_depend>ament_pep257</test_depend>
++  <test_depend>python3-pytest</test_depend>
++  <exec_depend>rclcpp</exec_depend>
++  <exec_depend>geometry_msgs</exec_depend>
++  <exec_depend>std_msgs</exec_depend>
++  <exec_depend>autoware_auto_system_msgs</exec_depend>
++  <exec_depend>autoware_auto_planning_msgs</exec_depend>
++
++  <export>
++    <build_type>ament_python</build_type>
++  </export>
++</package>
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/resource/crank_driving_planner b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/resource/crank_driving_planner
+new file mode 100644
+index 0000000..e69de29
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.cfg b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.cfg
+new file mode 100644
+index 0000000..81a35c2
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.cfg
+@@ -0,0 +1,4 @@
++[develop]
++script_dir=$base/lib/crank_driving_planner
++[install]
++install_scripts=$base/lib/crank_driving_planner
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.py
+new file mode 100644
+index 0000000..c8d69c6
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/setup.py
+@@ -0,0 +1,28 @@
++from setuptools import setup
++import os
++import glob
++package_name = 'crank_driving_planner'
++
++setup(
++    name=package_name,
++    version='0.0.0',
++    packages=[package_name],
++    data_files=[
++        ('share/ament_index/resource_index/packages',
++            ['resource/' + package_name]),
++        ('share/' + package_name, ['package.xml']),
++        (os.path.join('share', package_name), glob.glob('launch/*xml')),
++    ],
++    install_requires=['setuptools'],
++    zip_safe=True,
++    maintainer='Ishibushi Satoshi',
++    maintainer_email='s.ishibushi@gmail.com',
++    description='TODO: Package description',
++    license='TODO: License declaration',
++    tests_require=['pytest'],
++    entry_points={
++        'console_scripts': [
++            'crank_driving_planner_node = crank_driving_planner.Crank_driving_planner:main',
++        ],
++    },
++)
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_copyright.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_copyright.py
+new file mode 100644
+index 0000000..97a3919
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_copyright.py
+@@ -0,0 +1,25 @@
++# Copyright 2015 Open Source Robotics Foundation, Inc.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++from ament_copyright.main import main
++import pytest
++
++
++# Remove the `skip` decorator once the source file(s) have a copyright header
++@pytest.mark.skip(reason='No copyright header has been placed in the generated source file.')
++@pytest.mark.copyright
++@pytest.mark.linter
++def test_copyright():
++    rc = main(argv=['.', 'test'])
++    assert rc == 0, 'Found errors'
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_flake8.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_flake8.py
+new file mode 100644
+index 0000000..27ee107
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_flake8.py
+@@ -0,0 +1,25 @@
++# Copyright 2017 Open Source Robotics Foundation, Inc.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++from ament_flake8.main import main_with_errors
++import pytest
++
++
++@pytest.mark.flake8
++@pytest.mark.linter
++def test_flake8():
++    rc, errors = main_with_errors(argv=[])
++    assert rc == 0, \
++        'Found %d code style errors / warnings:\n' % len(errors) + \
++        '\n'.join(errors)
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_pep257.py b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_pep257.py
+new file mode 100644
+index 0000000..b234a38
+--- /dev/null
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner/test/test_pep257.py
+@@ -0,0 +1,23 @@
++# Copyright 2015 Open Source Robotics Foundation, Inc.
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++from ament_pep257.main import main
++import pytest
++
++
++@pytest.mark.linter
++@pytest.mark.pep257
++def test_pep257():
++    rc = main(argv=['.', 'test'])
++    assert rc == 0, 'Found code style errors / warnings'
