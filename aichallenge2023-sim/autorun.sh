@@ -20,12 +20,27 @@
 LOOP_TIMES=10
 SLEEP_SEC=180
 
+ZENITY_FONTSIZE=32
+ZENITY_POS="0 0"
+
 # check
 AICHALLENGE2023_DEV_REPOSITORY="${HOME}/aichallenge2023-sim"
 if [ ! -d ${AICHALLENGE2023_DEV_REPOSITORY} ]; then
    "please clone ~/aichallenge2023-sim on home directory (${AICHALLENGE2023_DEV_REPOSITORY})!!"
    return
 fi
+
+function start_rec(){
+    # start recording
+    obs-cmd recording start
+    sleep 5
+}
+
+function stop_rec(){
+    # stop recording
+    obs-cmd recording stop
+    sleep 5
+}
 
 function run_awsim(){
 
@@ -148,6 +163,14 @@ function preparation(){
 
     # リポジトリ設定など必要であれば実施（仮）
     echo "do_nothing"
+
+    # show loop information
+    if [ -n ${OPT_INFO} ]; then
+	LANG=C zenity --info --text "<span font='${ZENITY_FONTSIZE}'>Loop: ${i}</span>" &
+	sleep 1
+	ZENITY_WID=`xdotool search --name "Information"`
+	xdotool windowmove ${ZENITY_WID} ${ZENITY_POS}
+    fi
 }
 
 function do_game(){
@@ -159,8 +182,18 @@ function do_game(){
     ## AUTOWARE-->(2min sleep)-->AWSIMとしないと回避できない(centerpointtopic起きてこない)ので暫定対応
     run_autoware
     sleep 120
+    if [ -n ${REC_PATH} ]; then
+        start_rec
+    fi
     run_awsim
+    if [ -n ${OPT_INFO} ]; then
+	xdotool windowfocus ${ZENITY_WID}
+	xdotool windowraise ${ZENITY_WID}
+    fi
     get_result ${SLEEP_SEC}
+    if [ -n ${REC_PATH} ]; then
+        stop_rec
+    fi
 }
 
 function save_patch(){
@@ -173,10 +206,20 @@ function save_patch(){
     git diff > ./patch/${TODAY}.patch    
 }
 
+function cat_rec(){
+    # concatinate recorded file
+    REC_LIST="rec_file_list_tmp.txt"
+    REC_RESULT_NAME="result.mp4"
+    ls -Q ${REC_PATH}/2023-*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
+    ffmpeg -f concat -safe 0 -i ${REC_LIST} -c copy ${REC_PATH}/${REC_RESULT_NAME}
+    rm ${REC_PATH}/2023-*.mp4
+    rm ${REC_LIST}
+}
+
 # 引数に応じて処理を分岐
 # 引数別の処理定義
 IS_SAVE_PATCH="false"
-while getopts "apl:s:" optKey; do
+while getopts "apl:s:r:i" optKey; do
     case "$optKey" in
 	a)
 	    echo "-a option specified";
@@ -195,6 +238,14 @@ while getopts "apl:s:" optKey; do
 	    echo "-s = ${OPTARG}"
 	    SLEEP_SEC=${OPTARG}
 	    ;;
+	r)
+	    echo "-r = ${OPTARG}"
+	    REC_PATH=${OPTARG}
+	    ;;
+	i)
+	    echo "-i option specified"
+	    OPT_INFO="i"
+	    ;;
     esac
 done
 
@@ -207,4 +258,6 @@ do
     echo "----- LOOP: ${i} -----"
     do_game ${SLEEP_SEC}
 done
-	
+if [ -n ${REC_PATH} ]; then
+    cat_rec
+fi
