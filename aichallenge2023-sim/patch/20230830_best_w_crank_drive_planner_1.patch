@@ -1,0 +1,1916 @@
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
+index 1a999c3..78d08c5 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/aichallenge_submit.launch.xml
+@@ -19,4 +19,6 @@
+     <include file="$(find-pkg-share initialpose_publisher)/launch/initialpose_publisher.launch.xml" />
+ 
+     <include file="$(find-pkg-share self_driving_controller)/launch/self_driving_controller.launch.xml" />
++
++    <include file="$(find-pkg-share crank_driving_planner)/crank_driving_planner.launch.xml" />
+ </launch>
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
+index 400bc92..e2b464d 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/control/trajectory_follower/lateral/mpc.param.yaml
+@@ -19,23 +19,23 @@
+     qp_solver_type: "osqp"                       # optimization solver option (unconstraint_fast or osqp)
+     mpc_prediction_horizon: 50                   # prediction horizon step
+     mpc_prediction_dt: 0.1                       # prediction horizon period [s]
+-    mpc_weight_lat_error: 0.1                    # lateral error weight in matrix Q
+-    mpc_weight_heading_error: 0.0                # heading error weight in matrix Q
++    mpc_weight_lat_error: 0.1 #2.5 #2.0 #1.0 #0.6 #0.1                    # lateral error weight in matrix Q
++    mpc_weight_heading_error: 0.0 #1.0 #0.6 #0.0                # heading error weight in matrix Q
+     mpc_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q
+     mpc_weight_steering_input: 1.0               # steering error weight in matrix R
+     mpc_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R
+     mpc_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R
+     mpc_weight_steer_rate: 0.0                   # steering rate weight in matrix R
+     mpc_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R
+-    mpc_low_curvature_weight_lat_error: 0.1                    # lateral error weight in matrix Q in low curvature point
+-    mpc_low_curvature_weight_heading_error: 0.0                # heading error weight in matrix Q in low curvature point
++    mpc_low_curvature_weight_lat_error: 2.5 #0.1                    # lateral error weight in matrix Q in low curvature point
++    mpc_low_curvature_weight_heading_error: 1.0 #0.0                # heading error weight in matrix Q in low curvature point
+     mpc_low_curvature_weight_heading_error_squared_vel: 0.3    # heading error * velocity weight in matrix Q in low curvature point
+-    mpc_low_curvature_weight_steering_input: 1.0               # steering error weight in matrix R in low curvature point
++    mpc_low_curvature_weight_steering_input: 1.0 #1.0               # steering error weight in matrix R in low curvature point
+     mpc_low_curvature_weight_steering_input_squared_vel: 0.25  # steering error * velocity weight in matrix R in low curvature point
+     mpc_low_curvature_weight_lat_jerk: 0.0                     # lateral jerk weight in matrix R in low curvature point
+-    mpc_low_curvature_weight_steer_rate: 0.0                   # steering rate weight in matrix R in low curvature point
++    mpc_low_curvature_weight_steer_rate: 1.0 #0.0                   # steering rate weight in matrix R in low curvature point
+     mpc_low_curvature_weight_steer_acc: 0.000001               # steering angular acceleration weight in matrix R in low curvature point
+-    mpc_low_curvature_thresh_curvature: 0.0                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
++    mpc_low_curvature_thresh_curvature: 0.03                    # threshold of curvature to use "low_curvature" parameter (recommend: 0.01~0.03)
+     mpc_weight_terminal_lat_error: 1.0           # terminal lateral error weight in matrix Q to improve mpc stability
+     mpc_weight_terminal_heading_error: 0.1       # terminal heading error weight in matrix Q to improve mpc stability
+     mpc_zero_ff_steer_deg: 0.5                   # threshold that feed-forward angle becomes zero
+@@ -67,6 +67,6 @@
+     steering_offset:
+       enable_auto_steering_offset_removal: true
+       update_vel_threshold: 5.56
+-      update_steer_threshold: 0.035
++      update_steer_threshold: 0.1 # 0.035
+       average_num: 1000
+-      steering_offset_limit: 0.02
++      steering_offset_limit: 0.1 # 0.02
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+index 6bb130e..789a813 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+@@ -3,13 +3,13 @@
+     # constraints param for normal driving
+     normal:
+       min_acc: -1.0         # min deceleration [m/ss]
+-      max_acc: 1.0          # max acceleration [m/ss]
++      max_acc: 10.0          # max acceleration [m/ss]
+       min_jerk: -1.0        # min jerk [m/sss]
+-      max_jerk: 1.0         # max jerk [m/sss]
++      max_jerk: 10.0         # max jerk [m/sss]
+ 
+     # constraints to be observed
+     limit:
+       min_acc: -2.5         # min deceleration limit [m/ss]
+-      max_acc: 1.0          # max acceleration limit [m/ss]
++      max_acc: 10.0          # max acceleration limit [m/ss]
+       min_jerk: -1.5        # min jerk limit [m/sss]
+-      max_jerk: 1.5         # max jerk limit [m/sss]
++      max_jerk: 10.5         # max jerk limit [m/sss]
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
+index 329714e..bd03dda 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/Analytical.param.yaml
+@@ -10,9 +10,9 @@
+       constant_velocity_dist_threshold: 2.0
+ 
+     forward:
+-      max_acc: 1.0
++      max_acc: 10.0
+       min_acc: -1.0
+-      max_jerk: 0.3
++      max_jerk: 10.3
+       min_jerk: -0.3
+       kp: 0.3
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
+index a6906b7..3fa1950 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/JerkFiltered.param.yaml
+@@ -1,6 +1,6 @@
+ /**:
+   ros__parameters:
+-    jerk_weight: 0.1         # weight for "smoothness" cost for jerk
++    jerk_weight: 0.1 # 0.1         # weight for "smoothness" cost for jerk
+     over_v_weight: 10000.0   # weight for "over speed limit" cost
+     over_a_weight: 500.0     # weight for "over accel limit" cost
+     over_j_weight: 200.0     # weight for "over jerk limit" cost
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
+index e600334..eba3720 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/motion_velocity_smoother/motion_velocity_smoother.param.yaml
+@@ -8,11 +8,11 @@
+     margin_to_insert_external_velocity_limit: 0.3   #  margin distance to insert external velocity limit [m]
+ 
+     # curve parameters
+-    max_lateral_accel: 1.0             # max lateral acceleration limit [m/ss]
+-    min_curve_velocity: 2.74            # min velocity at lateral acceleration limit and steering angle rate limit [m/s]
+-    decel_distance_before_curve: 3.5   # slow speed distance before a curve for lateral acceleration limit
++    max_lateral_accel: 3.0   #1.0             # max lateral acceleration limit [m/ss]
++    min_curve_velocity: 0.1  #2.74            # min velocity at lateral acceleration limit and steering angle rate limit [m/s]
++    decel_distance_before_curve: 5.0 #3.5   # slow speed distance before a curve for lateral acceleration limit
+     decel_distance_after_curve: 2.0    # slow speed distance after a curve for lateral acceleration limit
+-    min_decel_for_lateral_acc_lim_filter: -2.5  # deceleration limit applied in the lateral acceleration filter to avoid sudden braking [m/ss]
++    min_decel_for_lateral_acc_lim_filter: -10.5 #-2.5  # deceleration limit applied in the lateral acceleration filter to avoid sudden braking [m/ss]
+ 
+     # engage & replan parameters
+     replan_vel_deviation: 5.53         # velocity deviation to replan initial velocity [m/s]
+@@ -22,8 +22,8 @@
+     stop_dist_to_prohibit_engage: 0.5  # if the stop point is in this distance, the speed is set to 0 not to move the vehicle [m]
+ 
+     # stop velocity
+-    stopping_velocity: 2.778  # change target velocity to this value before v=0 point [m/s]
+-    stopping_distance: 0.0    # distance for the stopping_velocity [m]. 0 means the stopping velocity is not applied.
++    stopping_velocity: 2.778 # 2.778  # change target velocity to this value before v=0 point [m/s]
++    stopping_distance: 0.0 # 0.0    # distance for the stopping_velocity [m]. 0 means the stopping velocity is not applied.
+ 
+     # path extraction parameters
+     extract_ahead_dist: 200.0         # forward trajectory distance used for planning [m]
+@@ -52,7 +52,7 @@
+     max_steering_angle_rate: 40.0            # maximum steering angle rate [degree/s]
+     resample_ds: 0.1                         # distance between trajectory points [m]
+     curvature_threshold: 0.02                # if curvature > curvature_threshold, steeringRateLimit is triggered [1/m]
+-    curvature_calculation_distance: 1.0      # distance of points while curvature is calculating [m]
++    curvature_calculation_distance: 0.0      # distance of points while curvature is calculating [m]
+ 
+     # system
+     over_stop_velocity_warn_thr: 1.389       # used to check if the optimization exceeds the input velocity on the stop point
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+index c14f59f..7c24d20 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+@@ -2,26 +2,26 @@
+ /**:
+   ros__parameters:
+     avoidance:
+-      resample_interval_for_planning: 0.3               # [m]
+-      resample_interval_for_output: 4.0                 # [m]
++      resample_interval_for_planning: 0.05              # [m]
++      resample_interval_for_output: 0.1                 # [m]
+       detection_area_right_expand_dist: 0.0             # [m]
+-      detection_area_left_expand_dist: 1.0              # [m]
++      detection_area_left_expand_dist: 0.0              # [m]
+       drivable_area_right_bound_offset: 0.0             # [m]
+       drivable_area_left_bound_offset: 0.0              # [m]
+-      object_envelope_buffer: 0.3                       # [m]
++      object_envelope_buffer: 0.45                      # [m]
+ 
+       # avoidance module common setting
+       enable_bound_clipping: false
+       enable_avoidance_over_same_direction: true
+       enable_avoidance_over_opposite_direction: true
+-      enable_update_path_when_object_is_gone: false
+-      enable_force_avoidance_for_stopped_vehicle: false
++      enable_update_path_when_object_is_gone: true
++      enable_force_avoidance_for_stopped_vehicle: true
+       enable_safety_check: false
+       enable_yield_maneuver: false
+       disable_path_update: false
+ 
+       # for debug
+-      publish_debug_marker: false
++      publish_debug_marker: true
+       print_debug_info: false
+ 
+       # avoidance is performed for the object type with true
+@@ -30,10 +30,10 @@
+         truck: true
+         bus: true
+         trailer: true
+-        unknown: false
+-        bicycle: false
+-        motorcycle: false
+-        pedestrian: false
++        unknown: true
++        bicycle: true #false
++        motorcycle: true #false
++        pedestrian: true #false
+ 
+       # For target object filtering
+       target_filtering:
+@@ -42,14 +42,14 @@
+         threshold_time_object_is_moving: 1.0            # [s]
+         threshold_time_force_avoidance_for_stopped_vehicle: 10.0 # [s]
+         # detection range
+-        object_check_force_avoidance_clearance: 30.0    # [m]
+-        object_check_forward_distance: 150.0            # [m]
+-        object_check_backward_distance: 2.0             # [m]
++        object_check_force_avoidance_clearance: 1.0    # [m]
++        object_check_forward_distance: 10.0            # [m]
++        object_check_backward_distance: 0.0             # [m]
+         object_check_goal_distance: 20.0                # [m]
+         # filtering parking objects
+-        threshold_distance_object_is_on_center: 1.0     # [m]
+-        object_check_shiftable_ratio: 0.6               # [-]
+-        object_check_min_road_shoulder_width: 0.5       # [m]
++        threshold_distance_object_is_on_center: 0.0     # [m]
++        object_check_shiftable_ratio: 0.0               # [-]
++        object_check_min_road_shoulder_width: 0.0       # [m]
+         # lost object compensation
+         object_last_seen_threshold: 2.0
+ 
+@@ -65,21 +65,21 @@
+       avoidance:
+         # avoidance lateral parameters
+         lateral:
+-          lateral_collision_margin: 1.0                 # [m]
+-          lateral_collision_safety_buffer: 0.7          # [m]
++          lateral_collision_margin: 0.1                 # [m]
++          lateral_collision_safety_buffer: 0.12          # [m]
+           lateral_passable_safety_buffer: 0.0           # [m]
+-          road_shoulder_safety_margin: 0.3              # [m]
++          road_shoulder_safety_margin: 0.0              # [m]
+           avoidance_execution_lateral_threshold: 0.499
+           max_right_shift_length: 5.0
+           max_left_shift_length: 5.0
+         # avoidance distance parameters
+         longitudinal:
+-          prepare_time: 2.0                             # [s]
++          prepare_time: 0.0                             # [s]
+           longitudinal_collision_safety_buffer: 0.0     # [m]
+-          min_prepare_distance: 1.0                     # [m]
+-          min_avoidance_distance: 10.0                  # [m]
+-          min_nominal_avoidance_speed: 7.0              # [m/s]
+-          min_sharp_avoidance_speed: 1.0                # [m/s]
++          min_prepare_distance: 0.0                     # [m]
++          min_avoidance_distance: 0.0                  # [m]
++          min_nominal_avoidance_speed: 0.5              # [m/s]
++          min_sharp_avoidance_speed: 0.5                # [m/s]
+ 
+       # For yield maneuver
+       yield:
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+index 46b176b..68b8345 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+@@ -3,23 +3,23 @@
+     verbose: false
+ 
+     planning_hz: 10.0
+-    backward_path_length: 5.0
+-    forward_path_length: 300.0
++    backward_path_length: 0.0
++    forward_path_length: 20.0
+     backward_length_buffer_for_end_of_pull_over: 5.0
+     backward_length_buffer_for_end_of_pull_out: 5.0
+     minimum_pull_over_length: 16.0
+ 
+-    refine_goal_search_radius_range: 7.5
++    refine_goal_search_radius_range: 3.5
+ 
+     # parameters for turn signal decider
+     turn_signal_intersection_search_distance: 30.0
+     turn_signal_intersection_angle_threshold_deg: 15.0
+-    turn_signal_minimum_search_distance: 10.0
++    turn_signal_minimum_search_distance: 1.0
+     turn_signal_search_time: 3.0
+     turn_signal_shift_length_threshold: 0.3
+     turn_signal_on_swerving: true
+ 
+-    path_interval: 2.0
++    path_interval: 0.1
+ 
+     visualize_maximum_drivable_area: true
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+index 902a93c..0f28c4e 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+@@ -3,27 +3,27 @@
+     # Static expansion
+     avoidance:
+       drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     lane_change:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     lane_following:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.67 ##-0.70
++      drivable_area_left_bound_offset: -0.17 #-0.15
+       drivable_area_types_to_skip: [road_border]
+     pull_out:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     pull_over:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+     side_shift:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: -0.5
++      drivable_area_left_bound_offset: 1.0
+       drivable_area_types_to_skip: [road_border]
+ 
+     # Dynamic expansion by projecting the ego footprint along the path
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
+index b6a9574..ea264f4 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/lane_following/lane_following.param.yaml
+@@ -1,4 +1,4 @@
+ /**:
+   ros__parameters:
+     lane_following:
+-      lane_change_prepare_duration: 2.0
++      lane_change_prepare_duration: 0.0
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
+index daa8e02..515a059 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/obstacle_avoidance_planner.param.yaml
+@@ -4,7 +4,7 @@
+       enable_smoothing: true                                       # enable path smoothing by elastic band
+       enable_skip_optimization: false                              # skip elastic band and model predictive trajectory
+       enable_reset_prev_optimization: false                        # If true, optimization has no fix constraint to the previous result.
+-      enable_outside_drivable_area_stop: true                      # stop if the ego's trajectory footprint is outside the drivable area
++      enable_outside_drivable_area_stop: false                      # stop if the ego's trajectory footprint is outside the drivable area
+       use_footprint_polygon_for_outside_drivable_area_check: false # If false, only the footprint's corner points are considered.
+ 
+       debug:
+@@ -12,8 +12,8 @@
+         enable_pub_debug_marker: true           # publish debug marker
+ 
+         # flag to show
+-        enable_debug_info: false
+-        enable_calculation_time_info: false
++        enable_debug_info: true
++        enable_calculation_time_info: true
+ 
+     common:
+       # output
+@@ -89,16 +89,16 @@
+         soft_collision_free_weight: 1000.0        # soft weight for lateral error around the middle point
+ 
+         # tracking error
+-        lat_error_weight: 1.0       # weight for lateral error
+-        yaw_error_weight: 0.0       # weight for yaw error
+-        yaw_error_rate_weight: 0.0  # weight for yaw error rate
+-        steer_input_weight: 1.0     # weight for steering input
+-        steer_rate_weight: 1.0      # weight for steering rate
++        lat_error_weight: 10.0       # weight for lateral error
++        yaw_error_weight: 10.0       # weight for yaw error
++        yaw_error_rate_weight: 10.0  # weight for yaw error rate
++        steer_input_weight: 0.0     # weight for steering input
++        steer_rate_weight: 0.0      # weight for steering rate
+ 
+         terminal_lat_error_weight: 100.0  # weight for lateral error at terminal point
+-        terminal_yaw_error_weight: 100.0  # weight for yaw error at terminal point
++        terminal_yaw_error_weight: 0.0  # 100.0 # weight for yaw error at terminal point
+         goal_lat_error_weight: 1000.0     # weight for lateral error at path end point
+-        goal_yaw_error_weight: 1000.0     # weight for yaw error at path end point
++        goal_yaw_error_weight: 0.0     # 1000.0 # weight for yaw error at path end point
+ 
+       # avoidance
+       avoidance:
+@@ -108,9 +108,9 @@
+         avoidance_cost_decrease_rate: 0.05 # decreased cost per point interval
+ 
+         weight:
+-          lat_error_weight: 0.0     # weight for lateral error
++          lat_error_weight: 10.0     # weight for lateral error
+           yaw_error_weight: 10.0    # weight for yaw error
+-          steer_input_weight: 100.0 # weight for yaw error
++          steer_input_weight: 0.0 # weight for yaw error
+ 
+       # collision free constraint for optimization
+       collision_free_constraints:
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
+index dfc2b2e..4f1a673 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_cruise_planner/obstacle_cruise_planner.param.yaml
+@@ -3,7 +3,7 @@
+     common:
+       planning_algorithm: "pid_base" # currently supported algorithm is "pid_base"
+ 
+-      is_showing_debug_info: false
++      is_showing_debug_info: true
+       disable_stop_planning: false # true
+ 
+       # longitudinal info
+@@ -29,7 +29,7 @@
+         trailer: true
+         motorcycle: true
+         bicycle: true
+-        pedestrian: false
++        pedestrian: true
+ 
+       stop_obstacle_type:
+         unknown: true
+@@ -65,7 +65,7 @@
+       stop_obstacle_hold_time_threshold : 1.0 # maximum time for holding closest stop obstacle
+ 
+       ignored_outside_obstacle_type:
+-        unknown: true
++        unknown: false
+         car: false
+         truck: false
+         bus: false
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
+index a68a760..296026a 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/motion_planning/obstacle_stop_planner/obstacle_stop_planner.param.yaml
+@@ -15,14 +15,14 @@
+     stop_planner:
+       # params for stop position
+       stop_position:
+-        max_longitudinal_margin: 5.0             # stop margin distance from obstacle on the path [m]
++        max_longitudinal_margin: 5.5             # stop margin distance from obstacle on the path [m]
+         max_longitudinal_margin_behind_goal: 3.0 # stop margin distance from obstacle behind goal on the path [m]
+-        min_longitudinal_margin: 5.0             # stop margin distance when any other stop point is inserted in stop margin [m]
+-        hold_stop_margin_distance: 0.0           # the ego keeps stopping if the ego is in this margin [m]
++        min_longitudinal_margin: 5.5             # stop margin distance when any other stop point is inserted in stop margin [m]
++        hold_stop_margin_distance: 5.5           # the ego keeps stopping if the ego is in this margin [m]
+ 
+       # params for detection area
+       detection_area:
+-        lateral_margin: 0.0                  # margin [m]
++        lateral_margin: 0.2                 # margin [m]
+         vehicle_lateral_margin: 0.0          # margin of vehicle footprint [m]
+         pedestrian_lateral_margin: 0.0       # margin of pedestrian footprint [m]
+         unknown_lateral_margin: 0.0          # margin of unknown footprint [m]
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
+index cac9bb8..da10f99 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/rviz/autoware.rviz
+@@ -3,9 +3,10 @@ Panels:
+     Help Height: 0
+     Name: Displays
+     Property Tree Widget:
+-      Expanded: ~
++      Expanded:
++        - /Sensing1/LiDAR1/ConcatenatePointCloud1/Autocompute Value Bounds1
+       Splitter Ratio: 0.557669460773468
+-    Tree Height: 397
++    Tree Height: 140
+   - Class: rviz_common/Selection
+     Name: Selection
+   - Class: rviz_common/Tool Properties
+@@ -13,7 +14,8 @@ Panels:
+     Name: Tool Properties
+     Splitter Ratio: 0.5886790156364441
+   - Class: rviz_common/Views
+-    Expanded: ~
++    Expanded:
++      - /Current View1
+     Name: Views
+     Splitter Ratio: 0.5
+   - Class: tier4_localization_rviz_plugin/InitialPoseButtonPanel
+@@ -37,7 +39,8 @@ Visualization Manager:
+           Show Arrows: true
+           Show Axes: true
+           Show Names: true
+-          Tree: {}
++          Tree:
++            {}
+           Update Interval: 0
+           Value: false
+         - Alpha: 0.5
+@@ -62,9 +65,12 @@ Visualization Manager:
+           Displays:
+             - Class: rviz_plugins/SteeringAngle
+               Enabled: true
++              Left: 64
++              Length: 128
+               Name: SteeringAngle
+               Scale: 17
+               Text Color: 25; 255; 240
++              Top: 64
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -72,12 +78,15 @@ Visualization Manager:
+                 Reliability Policy: Reliable
+                 Value: /vehicle/status/steering_status
+               Value: true
++              Value Scale: 0.14999249577522278
+               Value height offset: 0
+             - Class: rviz_plugins/ConsoleMeter
+               Enabled: true
++              Left: 256
++              Length: 128
+               Name: ConsoleMeter
+-              Scale: 3
+               Text Color: 25; 255; 240
++              Top: 64
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -85,8 +94,9 @@ Visualization Manager:
+                 Reliability Policy: Reliable
+                 Value: /vehicle/status/velocity_status
+               Value: true
++              Value Scale: 0.14999249577522278
+               Value height offset: 0
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Class: rviz_plugins/VelocityHistory
+               Color Border Vel Max: 3
+               Constant Color:
+@@ -122,154 +132,139 @@ Visualization Manager:
+                 Expand Tree: false
+                 Link Tree Style: Links in Alphabetic Order
+                 base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera0/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera0/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 camera1/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera1/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 camera2/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera2/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 camera3/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera3/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 camera4/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera4/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 camera5/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 camera5/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 gnss_link:
+-                  Alpha: 0.999
+-                  Show Axes: false
+-                  Show Trail: false
+-                  Value: true
+-                livox_front_left:
+-                  Alpha: 0.999
+-                  Show Axes: false
+-                  Show Trail: false
+-                livox_front_left_base_link:
+-                  Alpha: 0.999
+-                  Show Axes: false
+-                  Show Trail: false
+-                  Value: true
+-                livox_front_right:
+-                  Alpha: 0.999
+-                  Show Axes: false
+-                  Show Trail: false
+-                livox_front_right_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 sensor_kit_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 tamagawa/imu_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 traffic_light_left_camera/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 traffic_light_left_camera/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 traffic_light_right_camera/camera_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 traffic_light_right_camera/camera_optical_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                 velodyne_left:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_left_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_rear:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_rear_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_right:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_right_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_top:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
+                 velodyne_top_base_link:
+-                  Alpha: 0.999
++                  Alpha: 1
+                   Show Axes: false
+                   Show Trail: false
+                   Value: true
++              Mass Properties:
++                Inertia: false
++                Mass: false
+               Name: VehicleModel
+               TF Prefix: ""
+               Update Interval: 0
+@@ -282,8 +277,8 @@ Visualization Manager:
+               Max Alpha: 0.5
+               Max Range: 100
+               Max Wave Alpha: 0.5
+-              Min Alpha: 0.01
+-              Min Wave Alpha: 0.01
++              Min Alpha: 0.009999999776482582
++              Min Wave Alpha: 0.009999999776482582
+               Name: PolarGridDisplay
+               Reference Frame: base_link
+               Value: true
+@@ -291,18 +286,20 @@ Visualization Manager:
+               Wave Velocity: 40
+             - Class: rviz_plugins/MaxVelocity
+               Enabled: true
++              Left: 298
++              Length: 48
+               Name: MaxVelocity
+               Text Color: 255; 255; 255
+-              Topic:
+-                Depth: 5
+-                Durability Policy: Volatile
+-                History Policy: Keep Last
+-                Reliability Policy: Reliable
+-                Value: /planning/scenario_planning/current_max_velocity
++              Top: 140
++              Topic: /planning/scenario_planning/current_max_velocity
+               Value: true
++              Value Scale: 0.25
+             - Class: rviz_plugins/TurnSignal
+               Enabled: true
++              Height: 128
++              Left: 98
+               Name: TurnSignal
++              Top: 175
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -310,6 +307,7 @@ Visualization Manager:
+                 Reliability Policy: Reliable
+                 Value: /vehicle/status/turn_indicators_status
+               Value: true
++              Width: 256
+           Enabled: true
+           Name: Vehicle
+       Enabled: true
+@@ -338,11 +336,12 @@ Visualization Manager:
+           Position Transformer: XYZ
+           Selectable: false
+           Size (Pixels): 1
+-          Size (m): 0.02
++          Size (m): 0.019999999552965164
+           Style: Points
+           Topic:
+             Depth: 5
+             Durability Policy: Transient Local
++            Filter size: 10
+             History Policy: Keep Last
+             Reliability Policy: Reliable
+             Value: /map/pointcloud_map
+@@ -355,26 +354,11 @@ Visualization Manager:
+           Namespaces:
+             center_lane_line: false
+             center_line_arrows: false
+-            crosswalk_lanelets: true
+             lane_start_bound: false
+-            lanelet direction: true
+             lanelet_id: false
+             left_lane_bound: true
+-            parking_lots: true
+-            parking_space: true
+-            pedestrian_marking: true
+             right_lane_bound: true
+             road_lanelets: false
+-            speed_bump: true
+-            stop_lines: true
+-            shoulder_center_lane_line: false
+-            shoulder_left_lane_bound: true
+-            shoulder_right_lane_bound: true
+-            shoulder_road_lanelets: false
+-            traffic_light: true
+-            traffic_light_id: false
+-            traffic_light_triangle: true
+-            walkway_lanelets: true
+           Topic:
+             Depth: 5
+             Durability Policy: Transient Local
+@@ -388,7 +372,7 @@ Visualization Manager:
+       Displays:
+         - Class: rviz_common/Group
+           Displays:
+-            - Alpha: 0.4
++            - Alpha: 0.4000000059604645
+               Autocompute Intensity Bounds: true
+               Autocompute Value Bounds:
+                 Max Value: 5
+@@ -410,18 +394,19 @@ Visualization Manager:
+               Position Transformer: XYZ
+               Selectable: false
+               Size (Pixels): 1
+-              Size (m): 0.02
++              Size (m): 0.019999999552965164
+               Style: Points
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Best Effort
+                 Value: /sensing/lidar/concatenated/pointcloud
+               Use Fixed Frame: false
+               Use rainbow: true
+               Value: true
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Class: rviz_default_plugins/Polygon
+               Color: 25; 255; 0
+               Enabled: false
+@@ -429,6 +414,7 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /sensing/lidar/crop_box_filter/crop_box_polygon
+@@ -467,6 +453,7 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /sensing/gnss/pose_with_covariance
+@@ -479,7 +466,7 @@ Visualization Manager:
+       Displays:
+         - Class: rviz_common/Group
+           Displays:
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Axes Length: 1
+               Axes Radius: 0.10000000149011612
+               Class: rviz_default_plugins/PoseWithCovariance
+@@ -509,11 +496,12 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /localization/pose_estimator/initial_pose_with_covariance
+-              Value: true
+-            - Alpha: 0.999
++              Value: false
++            - Alpha: 0.9990000128746033
+               Axes Length: 1
+               Axes Radius: 0.10000000149011612
+               Class: rviz_default_plugins/PoseWithCovariance
+@@ -543,27 +531,29 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /localization/pose_estimator/pose_with_covariance
+-              Value: true
++              Value: false
+             - Buffer Size: 200
+               Class: rviz_plugins::PoseHistory
+               Enabled: false
+               Line:
++                Alpha: 0.9990000128746033
+                 Color: 170; 255; 127
+                 Value: true
+                 Width: 0.10000000149011612
+-                Alpha: 0.999
+               Name: PoseHistory
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /localization/pose_estimator/pose
+-              Value: true
+-            - Alpha: 0.999
++              Value: false
++            - Alpha: 0.9990000128746033
+               Autocompute Intensity Bounds: true
+               Autocompute Value Bounds:
+                 Max Value: 10
+@@ -590,13 +580,14 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Best Effort
+                 Value: /localization/util/downsample/pointcloud
+               Use Fixed Frame: true
+               Use rainbow: true
+               Value: false
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Autocompute Intensity Bounds: true
+               Autocompute Value Bounds:
+                 Max Value: 10
+@@ -623,6 +614,7 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /localization/pose_estimator/points_aligned
+@@ -632,7 +624,8 @@ Visualization Manager:
+             - Class: rviz_default_plugins/MarkerArray
+               Enabled: true
+               Name: MonteCarloInitialPose
+-              Namespaces: {}
++              Namespaces:
++                {}
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -648,14 +641,15 @@ Visualization Manager:
+               Class: rviz_plugins::PoseHistory
+               Enabled: true
+               Line:
++                Alpha: 0.9990000128746033
+                 Color: 0; 255; 255
+                 Value: true
+                 Width: 0.10000000149011612
+-                Alpha: 0.999
+               Name: PoseHistory
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /localization/pose_twist_fusion_filter/pose
+@@ -668,7 +662,7 @@ Visualization Manager:
+       Displays:
+         - Class: rviz_common/Group
+           Displays:
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Autocompute Intensity Bounds: true
+               Autocompute Value Bounds:
+                 Max Value: 15
+@@ -690,11 +684,12 @@ Visualization Manager:
+               Position Transformer: XYZ
+               Selectable: false
+               Size (Pixels): 3
+-              Size (m): 0.02
++              Size (m): 0.019999999552965164
+               Style: Points
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Best Effort
+                 Value: /perception/obstacle_segmentation/pointcloud
+@@ -708,16 +703,16 @@ Visualization Manager:
+             - Class: rviz_common/Group
+               Displays:
+                 - BUS:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CAR:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CYCLIST:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Class: autoware_auto_perception_rviz_plugin/DetectedObjects
+-                  Display 3d polygon: true
++                  Display Acceleration: true
+                   Display Label: true
+                   Display PoseWithCovariance: true
+                   Display Predicted Path Confidence: true
+@@ -725,21 +720,23 @@ Visualization Manager:
+                   Display Twist: true
+                   Display UUID: true
+                   Display Velocity: true
+-                  Line Width: 0.03
+                   Enabled: true
++                  Line Width: 0.029999999329447746
+                   MOTORCYCLE:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Name: DetectedObjects
+-                  Namespaces: {}
++                  Namespaces:
++                    {}
+                   PEDESTRIAN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 192; 203
++                  Polygon Type: 3d
+                   TRAILER:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   TRUCK:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   Topic:
+                     Depth: 5
+@@ -748,24 +745,25 @@ Visualization Manager:
+                     Reliability Policy: Best Effort
+                     Value: /perception/object_recognition/detection/objects
+                   UNKNOWN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 255; 255
+                   Value: true
++                  Visualization Type: Normal
+               Enabled: false
+               Name: Detection
+             - Class: rviz_common/Group
+               Displays:
+                 - BUS:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CAR:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CYCLIST:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Class: autoware_auto_perception_rviz_plugin/TrackedObjects
+-                  Display 3d polygon: true
++                  Display Acceleration: true
+                   Display Label: true
+                   Display PoseWithCovariance: true
+                   Display Predicted Path Confidence: true
+@@ -773,21 +771,23 @@ Visualization Manager:
+                   Display Twist: true
+                   Display UUID: true
+                   Display Velocity: true
+-                  Line Width: 0.03
+                   Enabled: true
++                  Line Width: 0.029999999329447746
+                   MOTORCYCLE:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Name: TrackedObjects
+-                  Namespaces: {}
++                  Namespaces:
++                    {}
+                   PEDESTRIAN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 192; 203
++                  Polygon Type: 3d
+                   TRAILER:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   TRUCK:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   Topic:
+                     Depth: 5
+@@ -796,24 +796,25 @@ Visualization Manager:
+                     Reliability Policy: Best Effort
+                     Value: /perception/object_recognition/tracking/objects
+                   UNKNOWN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 255; 255
+                   Value: true
++                  Visualization Type: Normal
+               Enabled: false
+               Name: Tracking
+             - Class: rviz_common/Group
+               Displays:
+                 - BUS:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CAR:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   CYCLIST:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Class: autoware_auto_perception_rviz_plugin/PredictedObjects
+-                  Display 3d polygon: true
++                  Display Acceleration: true
+                   Display Label: true
+                   Display PoseWithCovariance: false
+                   Display Predicted Path Confidence: true
+@@ -821,21 +822,23 @@ Visualization Manager:
+                   Display Twist: true
+                   Display UUID: true
+                   Display Velocity: true
+-                  Line Width: 0.03
+                   Enabled: true
++                  Line Width: 0.029999999329447746
+                   MOTORCYCLE:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 119; 11; 32
+                   Name: PredictedObjects
+-                  Namespaces: {}
++                  Namespaces:
++                    {}
+                   PEDESTRIAN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 192; 203
++                  Polygon Type: 3d
+                   TRAILER:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   TRUCK:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 30; 144; 255
+                   Topic:
+                     Depth: 5
+@@ -844,20 +847,22 @@ Visualization Manager:
+                     Reliability Policy: Best Effort
+                     Value: /perception/object_recognition/objects
+                   UNKNOWN:
+-                    Alpha: 0.999
++                    Alpha: 0.9990000128746033
+                     Color: 255; 255; 255
+                   Value: true
++                  Visualization Type: Normal
+                 - Class: rviz_default_plugins/MarkerArray
+                   Enabled: false
+                   Name: Maneuver
+-                  Namespaces: {}
++                  Namespaces:
++                    {}
+                   Topic:
+                     Depth: 5
+                     Durability Policy: Volatile
+                     History Policy: Keep Last
+                     Reliability Policy: Best Effort
+                     Value: /perception/object_recognition/prediction/maneuver
+-                  Value: true
++                  Value: false
+               Enabled: true
+               Name: Prediction
+           Enabled: true
+@@ -881,7 +886,8 @@ Visualization Manager:
+             - Class: rviz_default_plugins/MarkerArray
+               Enabled: true
+               Name: MapBasedDetectionResult
+-              Namespaces: {}
++              Namespaces:
++                {}
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -926,11 +932,7 @@ Visualization Manager:
+               Enabled: true
+               Name: RouteArea
+               Namespaces:
+-                goal_lanelets: true
+-                lane_start_bound: false
+-                left_lane_bound: false
+-                right_lane_bound: false
+-                route_lanelets: true
++                {}
+               Topic:
+                 Depth: 5
+                 Durability Policy: Transient Local
+@@ -938,7 +940,7 @@ Visualization Manager:
+                 Reliability Policy: Reliable
+                 Value: /planning/mission_planning/route_marker
+               Value: true
+-            - Alpha: 0.999
++            - Alpha: 0.9990000128746033
+               Axes Length: 1
+               Axes Radius: 0.30000001192092896
+               Class: rviz_default_plugins/Pose
+@@ -953,6 +955,7 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /planning/mission_planning/echo_back_goal_pose
+@@ -968,18 +971,36 @@ Visualization Manager:
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
++                Filter size: 10
+                 History Policy: Keep Last
+                 Reliability Policy: Reliable
+                 Value: /planning/scenario_planning/trajectory
+               Value: true
++              View Footprint:
++                Alpha: 1
++                Color: 230; 230; 50
++                Offset from BaseLink: 0
++                Rear Overhang: 1.0299999713897705
++                Value: false
++                Vehicle Length: 4.769999980926514
++                Vehicle Width: 1.8300000429153442
+               View Path:
+-                Alpha: 0.999
++                Alpha: 0.9990000128746033
+                 Color: 0; 0; 0
+                 Constant Color: false
+                 Value: true
+                 Width: 2
++              View Point:
++                Alpha: 1
++                Color: 0; 60; 255
++                Offset: 0
++                Radius: 0.10000000149011612
++                Value: false
++              View Text Velocity:
++                Scale: 0.30000001192092896
++                Value: false
+               View Velocity:
+-                Alpha: 0.999
++                Alpha: 0.9990000128746033
+                 Color: 0; 0; 0
+                 Constant Color: false
+                 Scale: 0.30000001192092896
+@@ -995,16 +1016,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/scenario_planning/lane_driving/behavior_planning/path
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.4000000059604645
+                         Color: 0; 0; 0
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.4000000059604645
+                         Color: 0; 0; 0
+@@ -1018,16 +1062,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/lane_change
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1041,16 +1108,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/ext_request_lane_change_right
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1064,16 +1154,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/ext_request_lane_change_left
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1087,16 +1200,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/avoidance
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1110,16 +1246,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/pull_out
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1133,16 +1292,39 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/path_candidate/pull_over
+                       Value: true
++                      View Drivable Area:
++                        Alpha: 0.9990000128746033
++                        Color: 0; 148; 205
++                        Value: true
++                        Width: 0.30000001192092896
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+                         Alpha: 0.30000001192092896
+                         Color: 115; 210; 22
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+                         Alpha: 0.30000001192092896
+                         Color: 0; 0; 0
+@@ -1153,12 +1335,10 @@ Visualization Manager:
+                       Enabled: true
+                       Name: Bound
+                       Namespaces:
+-                        left_bound: true
+-                        right_bound: true
++                        {}
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
+-                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/debug/bound
+@@ -1265,8 +1445,7 @@ Visualization Manager:
+                           Enabled: true
+                           Name: VirtualWall (StopLine)
+                           Namespaces:
+-                            stop_factor_text: true
+-                            stop_virtual_wall: true
++                            {}
+                           Topic:
+                             Depth: 5
+                             Durability Policy: Volatile
+@@ -1327,7 +1506,7 @@ Visualization Manager:
+                     - Class: rviz_common/Group
+                       Displays:
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: Arrow
+                           Namespaces:
+                             {}
+@@ -1337,7 +1516,7 @@ Visualization Manager:
+                             History Policy: Keep Last
+                             Reliability Policy: Reliable
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_velocity_planner/debug/path
+-                          Value: false
++                          Value: true
+                         - Class: rviz_default_plugins/MarkerArray
+                           Enabled: false
+                           Name: Crosswalk
+@@ -1459,7 +1638,7 @@ Visualization Manager:
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_velocity_planner/debug/run_out
+                           Value: false
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: Avoidance
+                           Namespaces:
+                             {}
+@@ -1469,7 +1648,7 @@ Visualization Manager:
+                             History Policy: Keep Last
+                             Reliability Policy: Reliable
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/debug/avoidance
+-                          Value: false
++                          Value: true
+                         - Class: rviz_default_plugins/MarkerArray
+                           Enabled: false
+                           Name: LaneChange
+@@ -1542,7 +1721,7 @@ Visualization Manager:
+                             Reliability Policy: Reliable
+                             Value: /planning/scenario_planning/lane_driving/behavior_planning/behavior_velocity_planner/debug/speed_bump
+                           Value: false
+-                      Enabled: false
++                      Enabled: true
+                       Name: DebugMarker
+                   Enabled: true
+                   Name: BehaviorPlanning
+@@ -1555,18 +1734,36 @@ Visualization Manager:
+                       Topic:
+                         Depth: 5
+                         Durability Policy: Volatile
++                        Filter size: 10
+                         History Policy: Keep Last
+                         Reliability Policy: Reliable
+                         Value: /planning/scenario_planning/lane_driving/trajectory
+                       Value: false
++                      View Footprint:
++                        Alpha: 1
++                        Color: 230; 230; 50
++                        Offset from BaseLink: 0
++                        Rear Overhang: 1.0299999713897705
++                        Value: false
++                        Vehicle Length: 4.769999980926514
++                        Vehicle Width: 1.8300000429153442
+                       View Path:
+-                        Alpha: 0.999
++                        Alpha: 0.9990000128746033
+                         Color: 0; 0; 0
+                         Constant Color: false
+                         Value: true
+                         Width: 2
++                      View Point:
++                        Alpha: 1
++                        Color: 0; 60; 255
++                        Offset: 0
++                        Radius: 0.10000000149011612
++                        Value: false
++                      View Text Velocity:
++                        Scale: 0.30000001192092896
++                        Value: false
+                       View Velocity:
+-                        Alpha: 0.999
++                        Alpha: 0.9990000128746033
+                         Color: 0; 0; 0
+                         Constant Color: false
+                         Scale: 0.30000001192092896
+@@ -1721,7 +1918,7 @@ Visualization Manager:
+                           Enabled: false
+                           Name: ObstacleCruise
+                         - Class: rviz_default_plugins/MarkerArray
+-                          Enabled: false
++                          Enabled: true
+                           Name: ObstacleAvoidance
+                           Namespaces:
+                             {}
+@@ -1731,7 +1928,7 @@ Visualization Manager:
+                             History Policy: Keep Last
+                             Reliability Policy: Reliable
+                             Value: /planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/debug/marker
+-                          Value: false
++                          Value: true
+                       Enabled: false
+                       Name: DebugMarker
+                   Enabled: true
+@@ -1749,6 +1946,7 @@ Visualization Manager:
+                   Topic:
+                     Depth: 5
+                     Durability Policy: Volatile
++                    Filter size: 10
+                     History Policy: Keep Last
+                     Reliability Policy: Reliable
+                     Value: /planning/scenario_planning/parking/costmap_generator/occupancy_grid
+@@ -1760,7 +1958,7 @@ Visualization Manager:
+                     Value: /planning/scenario_planning/parking/costmap_generator/occupancy_grid_updates
+                   Use Timestamp: false
+                   Value: false
+-                - Alpha: 0.999
++                - Alpha: 0.9990000128746033
+                   Arrow Length: 0.30000001192092896
+                   Axes Length: 0.30000001192092896
+                   Axes Radius: 0.009999999776482582
+@@ -1776,11 +1974,12 @@ Visualization Manager:
+                   Topic:
+                     Depth: 5
+                     Durability Policy: Volatile
++                    Filter size: 10
+                     History Policy: Keep Last
+                     Reliability Policy: Reliable
+                     Value: /planning/scenario_planning/parking/freespace_planner/debug/partial_pose_array
+                   Value: true
+-                - Alpha: 0.999
++                - Alpha: 0.9990000128746033
+                   Arrow Length: 0.5
+                   Axes Length: 0.30000001192092896
+                   Axes Radius: 0.009999999776482582
+@@ -1796,6 +1995,7 @@ Visualization Manager:
+                   Topic:
+                     Depth: 5
+                     Durability Policy: Volatile
++                    Filter size: 10
+                     History Policy: Keep Last
+                     Reliability Policy: Reliable
+                     Value: /planning/scenario_planning/parking/freespace_planner/debug/pose_array
+@@ -1825,7 +2025,8 @@ Visualization Manager:
+             - Class: rviz_default_plugins/MarkerArray
+               Enabled: true
+               Name: PlanningErrorMarker
+-              Namespaces: {}
++              Namespaces:
++                {}
+               Topic:
+                 Depth: 5
+                 Durability Policy: Volatile
+@@ -1846,16 +2047,34 @@ Visualization Manager:
+           Topic:
+             Depth: 5
+             Durability Policy: Volatile
++            Filter size: 10
+             History Policy: Keep Last
+             Reliability Policy: Reliable
+             Value: /control/trajectory_follower/lateral/predicted_trajectory
+           Value: true
++          View Footprint:
++            Alpha: 1
++            Color: 230; 230; 50
++            Offset from BaseLink: 0
++            Rear Overhang: 1.0299999713897705
++            Value: false
++            Vehicle Length: 4.769999980926514
++            Vehicle Width: 1.8300000429153442
+           View Path:
+             Alpha: 1
+             Color: 255; 255; 255
+             Constant Color: true
+             Value: true
+             Width: 0.05000000074505806
++          View Point:
++            Alpha: 1
++            Color: 0; 60; 255
++            Offset: 0
++            Radius: 0.10000000149011612
++            Value: false
++          View Text Velocity:
++            Scale: 0.30000001192092896
++            Value: false
+           View Velocity:
+             Alpha: 1
+             Color: 0; 0; 0
+@@ -1865,7 +2084,8 @@ Visualization Manager:
+         - Class: rviz_default_plugins/MarkerArray
+           Enabled: false
+           Name: Debug/MPC
+-          Namespaces: {}
++          Namespaces:
++            {}
+           Topic:
+             Depth: 5
+             Durability Policy: Volatile
+@@ -1876,7 +2096,8 @@ Visualization Manager:
+         - Class: rviz_default_plugins/MarkerArray
+           Enabled: false
+           Name: Debug/PurePursuit
+-          Namespaces: {}
++          Namespaces:
++            {}
+           Topic:
+             Depth: 5
+             Durability Policy: Volatile
+@@ -1889,7 +2110,6 @@ Visualization Manager:
+   Enabled: true
+   Global Options:
+     Background Color: 10; 10; 10
+-    Default Light: true
+     Fixed Frame: map
+     Frame Rate: 30
+   Name: root
+@@ -1902,15 +2122,15 @@ Visualization Manager:
+     - Class: rviz_default_plugins/Measure
+       Line color: 128; 128; 0
+     - Class: rviz_default_plugins/SetInitialPose
+-      Theta std deviation: 0.2617993950843811
++      Covariance x: 0.25
++      Covariance y: 0.25
++      Covariance yaw: 0.06853891909122467
+       Topic:
+         Depth: 5
+         Durability Policy: Volatile
+         History Policy: Keep Last
+         Reliability Policy: Reliable
+         Value: /initialpose
+-      X std deviation: 0.5
+-      Y std deviation: 0.5
+     - Class: rviz_default_plugins/SetGoal
+       Topic:
+         Depth: 5
+@@ -1918,26 +2138,47 @@ Visualization Manager:
+         History Policy: Keep Last
+         Reliability Policy: Reliable
+         Value: /planning/mission_planning/goal
+-    - Class: rviz_plugins/PedestrianInitialPoseTool
++    - Acceleration: 0
++      Class: rviz_plugins/PedestrianInitialPoseTool
++      Interactive: false
++      Max velocity: 33.29999923706055
++      Min velocity: -33.29999923706055
+       Pose Topic: /simulation/dummy_perception_publisher/object_info
++      Target Frame: <Fixed Frame>
+       Theta std deviation: 0.0872664600610733
+       Velocity: 0
+       X std deviation: 0.029999999329447746
+       Y std deviation: 0.029999999329447746
+       Z position: 1
+       Z std deviation: 0.029999999329447746
+-    - Class: rviz_plugins/CarInitialPoseTool
++    - Acceleration: 0
++      Class: rviz_plugins/CarInitialPoseTool
++      H vehicle height: 2
++      Interactive: false
++      L vehicle length: 4
++      Max velocity: 33.29999923706055
++      Min velocity: -33.29999923706055
+       Pose Topic: /simulation/dummy_perception_publisher/object_info
++      Target Frame: <Fixed Frame>
+       Theta std deviation: 0.0872664600610733
+       Velocity: 3
++      W vehicle width: 1.7999999523162842
+       X std deviation: 0.029999999329447746
+       Y std deviation: 0.029999999329447746
+       Z position: 0
+       Z std deviation: 0.029999999329447746
+-    - Class: rviz_plugins/BusInitialPoseTool
++    - Acceleration: 0
++      Class: rviz_plugins/BusInitialPoseTool
++      H vehicle height: 3.5
++      Interactive: false
++      L vehicle length: 10.5
++      Max velocity: 33.29999923706055
++      Min velocity: -33.29999923706055
+       Pose Topic: /simulation/dummy_perception_publisher/object_info
++      Target Frame: <Fixed Frame>
+       Theta std deviation: 0.0872664600610733
+       Velocity: 0
++      W vehicle width: 2.5
+       X std deviation: 0.029999999329447746
+       Y std deviation: 0.029999999329447746
+       Z position: 0
+@@ -1950,24 +2191,32 @@ Visualization Manager:
+       Z position: 0
+     - Class: rviz_plugins/DeleteAllObjectsTool
+       Pose Topic: /simulation/dummy_perception_publisher/object_info
++  Transformation:
++    Current:
++      Class: rviz_default_plugins/TF
+   Value: true
+   Views:
+     Current:
+-      Angle: 0
+-      Class: rviz_default_plugins/TopDownOrtho
++      Class: rviz_default_plugins/ThirdPersonFollower
++      Distance: 35.52880859375
+       Enable Stereo Rendering:
+         Stereo Eye Separation: 0.05999999865889549
+         Stereo Focal Distance: 1
+         Swap Stereo Eyes: false
+         Value: false
++      Focal Point:
++        X: 0
++        Y: 0
++        Z: 0
++      Focal Shape Fixed Size: true
++      Focal Shape Size: 0.05000000074505806
+       Invert Z Axis: false
+       Name: Current View
+       Near Clip Distance: 0.009999999776482582
+-      Scale: 10
+-      Target Frame: viewer
+-      Value: TopDownOrtho (rviz_default_plugins)
+-      X: 0
+-      Y: 0
++      Pitch: 0.20000000298023224
++      Target Frame: base_link
++      Value: ThirdPersonFollower (rviz)
++      Yaw: 3.141592025756836
+     Saved:
+       - Class: rviz_default_plugins/ThirdPersonFollower
+         Distance: 18
+@@ -2005,16 +2254,18 @@ Visualization Manager:
+         X: 0
+         Y: 0
+ Window Geometry:
++  AutowareDateTimePanel:
++    collapsed: false
+   AutowareStatePanel:
+     collapsed: false
+   Displays:
+     collapsed: false
+-  Height: 1565
++  Height: 1016
+   Hide Left Dock: false
+   Hide Right Dock: false
+-  Image:
++  InitialPoseButtonPanel:
+     collapsed: false
+-  QMainWindow State: 000000ff00000000fd0000000400000000000002d500000506fc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000152000000c900fffffffc0000019500000108000000c10100001cfa000000000100000002fb0000000a0056006900650077007301000000000000033c0000010000fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000000ffffffff0000009d00fffffffb00000024004100750074006f00770061007200650053007400610074006500500061006e0065006c01000002a3000000f3000000f300fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d0065007200610100000682000000eb0000000000000000fb0000000a0049006d0061006700650100000505000002680000000000000000fb0000002c0049006e0069007400690061006c0050006f007300650042007500740074006f006e00500061006e0065006c000000068f000000de0000007700fffffffb0000002c0049006e0069007400690061006c0050006f007300650042007500740074006f006e00500061006e0065006c000000068f000000de0000000000000000fb00000030005200650063006f0067006e006900740069006f006e0052006500730075006c0074004f006e0049006d006100670065010000039c000001600000002800fffffffb0000002a004100750074006f0077006100720065004400610074006500540069006d006500500061006e0065006c0100000502000000410000004100ffffff000000010000015f000006fffc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000e7a0000005afc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000e7a0000005afc0100000002fb0000000800540069006d0065010000000000000e7a0000000000000000fb0000000800540069006d00650100000000000004500000000000000000000006dd0000050600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
++  QMainWindow State: 000000ff00000000fd0000000400000000000002d5000003a2fc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000000c7000000c700fffffffc00000108000000bb000000bb0100001afa000000000100000002fb0000000a0056006900650077007301000000000000033c0000010000fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000000ffffffff0000008c00fffffffb00000024004100750074006f00770061007200650053007400610074006500500061006e0065006c01000001c90000015e0000015e00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d0065007200610100000682000000eb0000000000000000fb0000000a0049006d0061006700650100000505000002680000000000000000fb0000002c0049006e0069007400690061006c0050006f007300650042007500740074006f006e00500061006e0065006c000000068f000000de0000007100fffffffb0000002c0049006e0069007400690061006c0050006f007300650042007500740074006f006e00500061006e0065006c000000068f000000de0000000000000000fb00000030005200650063006f0067006e006900740069006f006e0052006500730075006c0074004f006e0049006d006100670065010000032d0000006b0000002800fffffffb0000002a004100750074006f0077006100720065004400610074006500540069006d006500500061006e0065006c010000039e0000003f0000003f00ffffff000000010000015f000006fffc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000e7a0000005afc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000e7a0000005afc0100000002fb0000000800540069006d0065010000000000000e7a0000000000000000fb0000000800540069006d006501000000000000045000000000000000000000045b000003a200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+   RecognitionResultOnImage:
+     collapsed: false
+   Selection:
+@@ -2023,6 +2274,6 @@ Window Geometry:
+     collapsed: false
+   Views:
+     collapsed: false
+-  Width: 2813
+-  X: 67
++  Width: 1846
++  X: 74
+   Y: 27
