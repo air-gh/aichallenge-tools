@@ -1,0 +1,8 @@
+Player	rawLapTime	distanceScore	lapTime	isLapCompleted	isTimeout	trackLimitsViolation	collisionViolation
+20231229032556_seigot_main_202312091031_acc_jerk_001.patch	222.73085	47.3357	372.730835	false	false	[  4,  8,  6,  2,  0]	[  2,  0,  0,  0]
+20231229033751_seigot_main_202312091031_acc_jerk_001.patch	363.256622	49.82238	1048.25659	false	false	[  48,  60,  13,  1,  0]	[  1,  0,  0,  0]
+20231229034806_seigot_main_202312091031_acc_jerk_001.patch	255.982574	100	450.982574	true	false	[  10,  13,  5,  2,  0]	[  2,  0,  0,  0]
+20231229035832_seigot_main_202312091031_acc_jerk_001.patch	247.491241	100	372.491241	true	false	[  5,  7,  4,  2,  0]	[  1,  0,  0,  0]
+20231229040837_seigot_main_202312091031_acc_jerk_001.patch	251.9368	100	391.9368	true	false	[  5,  9,  5,  1,  0]	[  2,  0,  0,  0]
+20231229041842_seigot_main_202312091031_acc_jerk_001.patch	249.11235	100	374.112366	true	false	[  5,  8,  4,  1,  0]	[  2,  0,  0,  0]
+20231229042848_seigot_main_202312091031_acc_jerk_001.patch	255.816666	100	435.81665	true	false	[  7,  11,  6,  2,  0]	[  2,  0,  0,  0]

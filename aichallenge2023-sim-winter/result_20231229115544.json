@@ -1,0 +1,20 @@
+{
+  "rawLapTime": 130.875336,
+  "distanceScore": 47.86856,
+  "lapTime": 285.875336,
+  "isLapCompleted": false,
+  "isTimeout": false,
+  "trackLimitsViolation": [
+    6,
+    9,
+    5,
+    2,
+    0
+  ],
+  "collisionViolation": [
+    2,
+    0,
+    0,
+    0
+  ]
+}

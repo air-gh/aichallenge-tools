@@ -1,0 +1,13 @@
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/autoware_micro_awsim.launch.xml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/autoware_micro_awsim.launch.xml
+index 944f680..d8cc5b7 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/autoware_micro_awsim.launch.xml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/aichallenge_submit_launch/launch/autoware_micro_awsim.launch.xml
+@@ -233,7 +233,7 @@
+     <param name="use_external_target_vel" value="false"/>
+     <param name="external_target_vel" value="100.0"/>
+     <param name="lookahead_gain" value="0.4"/>
+-    <param name="lookahead_min_distance" value="5.0"/>
++    <param name="lookahead_min_distance" value="3.0"/>
+     <param name="speed_proportional_gain" value="1.0"/>
+     
+     <remap from="input/kinematics" to="/localization/kinematic_state"/>

@@ -18,7 +18,7 @@
 #   - autowareのサンプルコードの手動実行が確認できていること
 
 LOOP_TIMES=7 #10
-SLEEP_SEC=180
+SLEEP_SEC=360 #180
 TARGET_PATCH_NAME="default"
 CURRENT_DIRECTORY_PATH=`pwd`
 
@@ -49,8 +49,19 @@ function run_awsim(){
     sleep 5
     echo "-- run AWSIM... -->"
     echo "CMD: ${AWSIM_EXEC_COMMAND}"
-    gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
-    sleep 15
+    #gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+    #sleep 15
+    for ((ii=0; ii<20; ii++));
+    do
+	gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+	sleep 15
+	PROCESS_CNT=`ps -aux | grep "${AWSIM_ROCKER_NAME}" | grep AWSIM | wc -l`
+	if [ ${PROCESS_CNT} -ge 1 ]; then
+            break
+	fi
+	echo "no process ${AUTOWARE_ROCKER_NAME}, retry.."
+    done
+
     return
 }
 
@@ -78,7 +89,16 @@ function run_autoware(){
     sleep 5
     echo "-- run AUTOWARE run.sh... -->"
     echo "CMD: ${AUTOWARE_EXEC_COMMAND}"    
-    gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
+    for ((jj=0; jj<20; jj++));
+    do
+       gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
+       sleep 15
+       PROCESS_CNT=`ps -aux | grep "${AUTOWARE_ROCKER_NAME}" | grep "bash run.sh" | wc -l`
+       if [ ${PROCESS_CNT} -ge 1 ]; then
+           break
+       fi
+       echo "no process ${AUTOWARE_ROCKER_NAME} AWSIM, retry.."
+    done
     sleep 15
 }
 
@@ -209,6 +229,8 @@ function update_patch(){
     pushd ${AICHALLENGE2023_DEV_REPOSITORY}
     git diff > tmp.patch
     patch -p1 -R < tmp.patch
+    # crank planner削除
+    rm -rf ${HOME}/aichallenge2023-sim/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner
     ## target patch反映
     patch -p1 < ${AICHALLENGE2023_TOOLS_REPOSITORY_PATH}"/aichallenge2023-sim/patch/${TARGET_PATCH_NAME}"
     popd

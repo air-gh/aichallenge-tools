@@ -47,8 +47,18 @@ function run_awsim(){
     sleep 5
     echo "-- run AWSIM... -->"
     echo "CMD: ${AWSIM_EXEC_COMMAND}"
-    gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
-    sleep 15
+    #gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+    #sleep 15
+    for ((ii=0; ii<20; ii++));
+    do
+       gnome-terminal -- bash -c "${AWSIM_EXEC_COMMAND}" &
+       sleep 15
+       PROCESS_CNT=`ps -aux | grep "${AWSIM_ROCKER_NAME}" | grep AWSIM | wc -l`
+       if [ ${PROCESS_CNT} -ge 1 ]; then
+           break
+       fi
+       echo "no process ${AWSIM_ROCKER_NAME} AWSIM, retry.."
+    done
     return
 }
 
@@ -76,7 +86,16 @@ function run_autoware(){
     sleep 5
     echo "-- run AUTOWARE run.sh... -->"
     echo "CMD: ${AUTOWARE_EXEC_COMMAND}"    
-    gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
+    for ((jj=0; jj<20; jj++));
+    do
+       gnome-terminal -- bash -c "${AUTOWARE_EXEC_COMMAND}" &
+       sleep 15
+       PROCESS_CNT=`ps -aux | grep "${AUTOWARE_ROCKER_NAME}" | grep "bash run.sh" | wc -l`
+       if [ ${PROCESS_CNT} -ge 1 ]; then
+           break
+       fi
+       echo "no process ${AUTOWARE_ROCKER_NAME} AWSIM, retry.."
+    done
     sleep 15
 }
 
@@ -153,13 +172,29 @@ function do_game(){
     get_result ${SLEEP_SEC}
 }
 
+function save_patch(){
+    _IS_SAVE_PATCH=$1
+    if [ "${_IS_SAVE_PATCH}" == "false" ]; then
+	return 0
+    fi
+    mkdir -p patch
+    TODAY=`date +"%Y%m%d%I%M%S"`
+    git diff > ./patch/${TODAY}.patch    
+}
+
 # 引数に応じて処理を分岐
 # 引数別の処理定義
-while getopts "a:l:s:" optKey; do
+IS_SAVE_PATCH="false"
+while getopts "apl:s:" optKey; do
     case "$optKey" in
 	a)
-	    echo "-a = ${OPTARG}";
+	    echo "-a option specified";
 	    run_awsim;
+	    exit 0
+	    ;;
+	p)
+	    echo "-p option specified";
+	    IS_SAVE_PATCH="true";
 	    ;;
 	l)
 	    echo "-l = ${OPTARG}"
@@ -175,6 +210,7 @@ done
 # main loop
 echo "LOOP_TIMES: ${LOOP_TIMES}"
 echo "SLEEP_SEC: ${SLEEP_SEC}"
+save_patch ${IS_SAVE_PATCH}
 for ((i=0; i<${LOOP_TIMES}; i++));
 do
     echo "----- LOOP: ${i} -----"

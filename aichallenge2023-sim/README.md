@@ -64,6 +64,14 @@ Time	rawDistanceSocre	distanceScore	task3Duration	isOutsideLane	isTimeout	hasCol
 
 `distanceScore`が伸びるようにパラメータ調整や各種工夫に励めばOK
 
+更新方法
+```
+cd ~/aichallenge2023-sim
+cp autorun.sh autorun.sh.20230823
+curl https://raw.githubusercontent.com/seigot/aichallenge-tools/main/aichallenge2023-sim/autorun.sh -O autorun.sh
+cp stop.sh stop.20230823
+curl https://raw.githubusercontent.com/seigot/aichallenge-tools/main/aichallenge2023-sim/stop.sh -O stop.sh
+```
 
 ## option: サーバ側で自動実行する編（こちらはサーバ側で動作させたい場合のみ使用）
 
@@ -79,6 +87,12 @@ login seigot
 password ${YOUR_PASSWORD/YOUR_TOKEN}
 ```
 
+関連ツールを事前にインストールしておく
+
+```
+sudo apt install -y jq  # result.jsonからの値取得のために必要
+```
+
 コマンド
 
 ```
@@ -92,3 +106,43 @@ bash do.sh  # 最新のパッチを取得してautorun_server.sh を何度も実
 https://github.com/seigot/aichallenge-tools/tree/main/aichallenge2023-sim/patch  
 結果は以下に格納  
 https://github.com/seigot/aichallenge-result  
+
+```
+# パッチの当て方
+cd ~/aichallenge2023-sim
+git pull
+git diff > tmp.patch               ＃現在の差分を保存
+patch -p1 -R < tmp.patch     # 差分を打ち消し
+curl  https://raw.githubusercontent.com/seigot/aichallenge-tools/main/aichallenge2023-sim/patch/20230824_001_stop_drivable_area_false_left_bound_offset_-0.17_right_-0.67.patch
+patch -p1 < 20230824_001_stop_drivable_area_false_left_boundoffset-0.17right-0.67.patch  # 例えばこのパッチを当てる
+```
+
+#### [crank_drive_planner](https://github.com/bushio/crank_driving_planner)を使う場合
+
+`crank_drive_planner`のパッチの当て方
+
+```
+cd ~/aichallenge2023-sim
+git pull
+git diff > tmp.patch               ＃現在の差分を保存
+patch -p1 -R < tmp.patch     # 差分を打ち消し
+# crank planner削除
+rm -rf ${HOME}/aichallenge2023-sim/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/crank_driving_planner
+# patch当て
+curl https://raw.githubusercontent.com/seigot/aichallenge-tools/main/aichallenge2023-sim/patch/20230828_with_crank_drive_planner.patch
+ -O 20230828_with_crank_drive_planner.patch
+patch -p1 < 20230828_with_crank_drive_planner.patch
+```
+
+`crank_drive_planner`のパッチの取得方法
+
+```
+## ex)
+cd ~/aichallenge2023-sim/docker/aichallenge/aichallenge_ws/src/aichallenge_submit
+git clone http://github.com/bushio/crank_driving_planner.git 
+cd crank_driving_planner
+rm -rf .git
+cd ..
+git add -N crank_driving_planner # git add -Nでパッチに表示されるようになる
+git diff > 20230828_001.patch
+```

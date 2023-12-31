@@ -13,3 +13,5 @@ git diff > 20230815.patch
 
 結果格納URL  
 https://github.com/seigot/aichallenge-result/tree/main/aichallenge2023-sim
+
+[20230816_1330_tamani-souha+v4.patchの結果（たまに障害物を超えていく、超えないときもある、、）](https://www.youtube.com/watch?v=iQHVBrC6H_Y)

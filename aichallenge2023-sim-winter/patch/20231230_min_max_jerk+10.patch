@@ -1,0 +1,21 @@
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+index 6bb130e..c8e2147 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/common/common.param.yaml
+@@ -4,12 +4,12 @@
+     normal:
+       min_acc: -1.0         # min deceleration [m/ss]
+       max_acc: 1.0          # max acceleration [m/ss]
+-      min_jerk: -1.0        # min jerk [m/sss]
+-      max_jerk: 1.0         # max jerk [m/sss]
++      min_jerk: -11.0        # min jerk [m/sss]
++      max_jerk: 11.0         # max jerk [m/sss]
+ 
+     # constraints to be observed
+     limit:
+       min_acc: -2.5         # min deceleration limit [m/ss]
+       max_acc: 1.0          # max acceleration limit [m/ss]
+-      min_jerk: -1.5        # min jerk limit [m/sss]
+-      max_jerk: 1.5         # max jerk limit [m/sss]
++      min_jerk: -11.5        # min jerk limit [m/sss]
++      max_jerk: 11.5         # max jerk limit [m/sss]

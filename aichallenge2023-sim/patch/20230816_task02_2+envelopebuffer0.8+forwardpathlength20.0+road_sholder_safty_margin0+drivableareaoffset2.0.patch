@@ -1,0 +1,155 @@
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+index c14f59f..c3e917f 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/avoidance/avoidance.param.yaml
+@@ -2,20 +2,20 @@
+ /**:
+   ros__parameters:
+     avoidance:
+-      resample_interval_for_planning: 0.3               # [m]
+-      resample_interval_for_output: 4.0                 # [m]
++      resample_interval_for_planning: 0.05              # [m]
++      resample_interval_for_output: 0.1                 # [m]
+       detection_area_right_expand_dist: 0.0             # [m]
+       detection_area_left_expand_dist: 1.0              # [m]
+       drivable_area_right_bound_offset: 0.0             # [m]
+       drivable_area_left_bound_offset: 0.0              # [m]
+-      object_envelope_buffer: 0.3                       # [m]
++      object_envelope_buffer: 0.8                      # [m]
+ 
+       # avoidance module common setting
+       enable_bound_clipping: false
+       enable_avoidance_over_same_direction: true
+       enable_avoidance_over_opposite_direction: true
+-      enable_update_path_when_object_is_gone: false
+-      enable_force_avoidance_for_stopped_vehicle: false
++      enable_update_path_when_object_is_gone: true
++      enable_force_avoidance_for_stopped_vehicle: true
+       enable_safety_check: false
+       enable_yield_maneuver: false
+       disable_path_update: false
+@@ -30,7 +30,7 @@
+         truck: true
+         bus: true
+         trailer: true
+-        unknown: false
++        unknown: true
+         bicycle: false
+         motorcycle: false
+         pedestrian: false
+@@ -42,9 +42,9 @@
+         threshold_time_object_is_moving: 1.0            # [s]
+         threshold_time_force_avoidance_for_stopped_vehicle: 10.0 # [s]
+         # detection range
+-        object_check_force_avoidance_clearance: 30.0    # [m]
+-        object_check_forward_distance: 150.0            # [m]
+-        object_check_backward_distance: 2.0             # [m]
++        object_check_force_avoidance_clearance: 1.0    # [m]
++        object_check_forward_distance: 10.0            # [m]
++        object_check_backward_distance: 0.0             # [m]
+         object_check_goal_distance: 20.0                # [m]
+         # filtering parking objects
+         threshold_distance_object_is_on_center: 1.0     # [m]
+@@ -65,20 +65,20 @@
+       avoidance:
+         # avoidance lateral parameters
+         lateral:
+-          lateral_collision_margin: 1.0                 # [m]
+-          lateral_collision_safety_buffer: 0.7          # [m]
++          lateral_collision_margin: 0.1                 # [m]
++          lateral_collision_safety_buffer: 0.1          # [m]
+           lateral_passable_safety_buffer: 0.0           # [m]
+-          road_shoulder_safety_margin: 0.3              # [m]
++          road_shoulder_safety_margin: 0.0              # [m]
+           avoidance_execution_lateral_threshold: 0.499
+           max_right_shift_length: 5.0
+           max_left_shift_length: 5.0
+         # avoidance distance parameters
+         longitudinal:
+-          prepare_time: 2.0                             # [s]
++          prepare_time: 0.0                             # [s]
+           longitudinal_collision_safety_buffer: 0.0     # [m]
+-          min_prepare_distance: 1.0                     # [m]
+-          min_avoidance_distance: 10.0                  # [m]
+-          min_nominal_avoidance_speed: 7.0              # [m/s]
++          min_prepare_distance: 0.0                     # [m]
++          min_avoidance_distance: 0.0                  # [m]
++          min_nominal_avoidance_speed: 1.0              # [m/s]
+           min_sharp_avoidance_speed: 1.0                # [m/s]
+ 
+       # For yield maneuver
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+index 46b176b..df3ab53 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/behavior_path_planner.param.yaml
+@@ -3,13 +3,13 @@
+     verbose: false
+ 
+     planning_hz: 10.0
+-    backward_path_length: 5.0
+-    forward_path_length: 300.0
++    backward_path_length: 0.0
++    forward_path_length: 20.0
+     backward_length_buffer_for_end_of_pull_over: 5.0
+     backward_length_buffer_for_end_of_pull_out: 5.0
+     minimum_pull_over_length: 16.0
+ 
+-    refine_goal_search_radius_range: 7.5
++    refine_goal_search_radius_range: 3.5
+ 
+     # parameters for turn signal decider
+     turn_signal_intersection_search_distance: 30.0
+@@ -19,7 +19,7 @@
+     turn_signal_shift_length_threshold: 0.3
+     turn_signal_on_swerving: true
+ 
+-    path_interval: 2.0
++    path_interval: 0.1
+ 
+     visualize_maximum_drivable_area: true
+ 
+diff --git a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+index 902a93c..24a76ff 100644
+--- a/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
++++ b/docker/aichallenge/aichallenge_ws/src/aichallenge_submit/autoware_launch/autoware_launch/config/planning/scenario_planning/lane_driving/behavior_planning/behavior_path_planner/drivable_area_expansion.param.yaml
+@@ -2,28 +2,28 @@
+   ros__parameters:
+     # Static expansion
+     avoidance:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+     lane_change:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+     lane_following:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+     pull_out:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+     pull_over:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+     side_shift:
+-      drivable_area_right_bound_offset: 0.0
+-      drivable_area_left_bound_offset: 0.0
++      drivable_area_right_bound_offset: 2.0
++      drivable_area_left_bound_offset: 2.0
+       drivable_area_types_to_skip: [road_border]
+ 
+     # Dynamic expansion by projecting the ego footprint along the path
