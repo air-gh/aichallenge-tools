@@ -7,12 +7,80 @@
 LOOP_TIMES=10
 SLEEP_SEC=180
 
+AWSIM_POS="0 250"
+AWSIM_SIZE="960 720"
+AUTOWARE_POS="0 250"
+AUTOWARE_SIZE="2450 1150"
+ZENITY_FONTSIZE=32
+ZENITY_POS="0 0"
+
 # check
 AICHALLENGE2023_DEV_REPOSITORY="${HOME}/aichallenge2023-racing"
 if [ ! -d ${AICHALLENGE2023_DEV_REPOSITORY} ]; then
    "please clone ~/aichallenge2023-racing on home directory (${AICHALLENGE2023_DEV_REPOSITORY})!!"
    return
 fi
+
+function set_autoware_window(){
+    # wait autoware window
+    AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
+    while [ $? -ne 0 ]; do
+        sleep 1
+        AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
+    done
+    # set window position and size
+    xdotool windowmove ${AUTOWARE_WID} ${AUTOWARE_POS}
+    xdotool windowsize ${AUTOWARE_WID} ${AUTOWARE_SIZE}
+    # raise window
+    xdotool windowfocus ${AUTOWARE_WID}
+    xdotool windowraise ${AUTOWARE_WID}
+}
+
+function set_awsim_window(){
+    # wait awsim window
+    AWSIM_WID=`xdotool search --name "AWSIM"`
+    while [ $? -ne 0 ]; do
+        sleep 5
+        AWSIM_WID=`xdotool search --name "AWSIM"`
+    done
+    # set window position and size
+    xdotool windowmove ${AWSIM_WID} ${AWSIM_POS}
+    xdotool windowsize ${AWSIM_WID} ${AWSIM_SIZE}
+    # raise window
+    xdotool windowfocus ${AWSIM_WID}
+    xdotool windowraise ${AWSIM_WID}
+}
+
+function show_info()
+{
+    # show loop count
+    LANG=C zenity --info --text "<span font='${ZENITY_FONTSIZE}'>Loop: ${i}</span>" &
+    sleep 1
+    ZENITY_WID=`xdotool search --name "Information"`
+    xdotool windowmove ${ZENITY_WID} ${ZENITY_POS}
+}
+
+function start_rec(){
+    # start recording
+    obs-cmd --websocket obsws://localhost:4455/${OBS_SECRET} recording start
+    sleep 1
+}
+
+function stop_rec(){
+    # stop recording
+    obs-cmd --websocket obsws://localhost:4455/${OBS_SECRET} recording stop
+    sleep 5
+}
+
+function cat_rec(){
+    # concatinate recorded file
+    REC_LIST=`mktemp -p ${REC_PATH}`
+    REC_RESULT_NAME=result_`date +"%FT%H%M%S"`.mp4
+    ls -Q ${REC_PATH}/2024-*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
+    ffmpeg -f concat -safe 0 -i ${REC_LIST} -c copy ${REC_PATH}/${REC_RESULT_NAME}
+    rm ${REC_PATH}/2024-*.mp4
+    rm ${REC_LIST}
+}
 
 # autowareとawsimを実行
 function run_autoware_awsim(){
@@ -101,7 +169,16 @@ function do_game(){
     SLEEP_SEC=$1
     preparation
     run_autoware_awsim
+    if [ -n "${REC_PATH}" ]; then
+        set_autoware_window
+        set_awsim_window
+        show_info
+        start_rec
+    fi
     get_result ${SLEEP_SEC}
+    if [ -n "${REC_PATH}" ]; then
+        stop_rec
+    fi
 }
 
 # 念のためパッチを保存する処理
@@ -118,7 +195,7 @@ function save_patch(){
 # 引数に応じて処理を分岐
 # 引数別の処理定義
 IS_SAVE_PATCH="false"
-while getopts "apl:s:" optKey; do
+while getopts "apl:s:r:" optKey; do
     case "$optKey" in
 	a)
 	    echo "-a option specified";
@@ -137,6 +214,10 @@ while getopts "apl:s:" optKey; do
 	    echo "-s = ${OPTARG}"
 	    SLEEP_SEC=${OPTARG}
 	    ;;
+	r)
+	    echo "-r = ${OPTARG}"
+	    REC_PATH=${OPTARG}
+	    ;;
     esac
 done
 
@@ -149,3 +230,6 @@ do
     echo "----- LOOP: ${i} -----"
     do_game ${SLEEP_SEC}
 done
+cat_rec
+docker image prune -f
+docker builder prune -f

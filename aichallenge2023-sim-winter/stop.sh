@@ -36,6 +36,7 @@ function try_kill_docker_container(){
 function stop_process(){    
     try_kill_process "autoware_rocker_container"
     try_kill_process "run_container.sh"
+    try_kill_process "zenity"
     try_kill_docker_container
 }
 
