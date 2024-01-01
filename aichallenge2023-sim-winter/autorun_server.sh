@@ -82,7 +82,7 @@ function get_result(){
 }
 
 function push_result(){
-    RESULT_REPOSITORY_URL="https://github.com/seigot/aichallenge-result"
+    RESULT_REPOSITORY_URL="https://github.com/air-gh/aichallenge-result"
     RESULT_REPOSITORY_PATH="${HOME}/aichallenge-result"
     if [ ! -d ${RESULT_REPOSITORY_PATH} ]; then
 	pushd ${HOME}
