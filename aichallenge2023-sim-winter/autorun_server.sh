@@ -87,6 +87,7 @@ function cat_rec(){
 function upload_rec(){
     # upload recorded file by external script
     bash upload_rec.sh ${REC_PATH}/${REC_RESULT_NAME}
+    rm ${REC_PATH}/${REC_RESULT_NAME}
 }
 
 function run_autoware_awsim(){
