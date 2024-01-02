@@ -249,7 +249,16 @@ function update_patch(){
     ## repositoryを更新
     pushd ${HOME}
     rm -rf aichallenge2023-racing
-    git lfs clone https://github.com/AutomotiveAIChallenge/aichallenge2023-racing
+    if [ ! -d ${HOME}/git/aichallenge2023-racing ]; then
+	if [ ! -d ${HOME}/git ]; then
+            mkdir ${HOME}/git
+	fi
+	git lfs clone https://github.com/air-gh/aichallenge2023-racing ${HOME}/git
+    fi
+    git -C ${HOME}/git/aichallenge2023-racing pull
+    git -C ${HOME}/git/aichallenge2023-racing lfs pull
+    cp -r ${HOME}/git/aichallenge2023-racing .
+    cp -r ${HOME}/git/aichallenge2023-racing ${HOME}/aichallenge2023-racing/docker/evaluation
     docker pull ghcr.io/automotiveaichallenge/aichallenge2023-racing/autoware-universe-no-cuda
     ## copy AWSIM
     cp -r ${HOME}/AWSIM ${HOME}/aichallenge2023-racing/docker/aichallenge/.
