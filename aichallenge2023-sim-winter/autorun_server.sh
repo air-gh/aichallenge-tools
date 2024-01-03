@@ -178,7 +178,7 @@ function do_game(){
     preparation
     run_autoware_awsim
     if [ -n "${REC_PATH}" ]; then
-        set_autoware_window
+#        set_autoware_window
         show_info
         start_rec
     fi
