@@ -29,11 +29,11 @@ function set_autoware_window(){
         AUTOWARE_WID=`xdotool search --onlyvisible --name "RViz"`
     done
     # set window position and size
-    xdotool windowmove ${AUTOWARE_WID} ${AUTOWARE_POS}
-    xdotool windowsize ${AUTOWARE_WID} ${AUTOWARE_SIZE}
+#    xdotool windowmove ${AUTOWARE_WID} ${AUTOWARE_POS}
+#    xdotool windowsize ${AUTOWARE_WID} ${AUTOWARE_SIZE}
     # raise window
-    xdotool windowfocus ${AUTOWARE_WID}
-    xdotool windowraise ${AUTOWARE_WID}
+#    xdotool windowfocus ${AUTOWARE_WID}
+#    xdotool windowraise ${AUTOWARE_WID}
 }
 
 function show_info()
@@ -178,7 +178,7 @@ function do_game(){
     preparation
     run_autoware_awsim
     if [ -n "${REC_PATH}" ]; then
-#        set_autoware_window
+        set_autoware_window
         show_info
         start_rec
     fi
