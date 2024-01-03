@@ -99,7 +99,7 @@ function run_autoware_awsim(){
     AUTOWARE_ROCKER_EXEC_COMMAND="cd ~/aichallenge2023-racing/docker/evaluation; \
     			bash advance_preparations.sh;\
  			bash build_docker.sh;\
-    		        rocker --nvidia --x11 --user --net host --privileged --volume output:/output --name ${AUTOWARE_ROCKER_NAME} -- aichallenge-eval" # run_container.shの代わりにrockerコマンド直接実行(コンテナに名前をつける必要がある)
+    		        rocker --device /dev/dri --x11 --user --net host --privileged --volume output:/output --name ${AUTOWARE_ROCKER_NAME} -- aichallenge-eval" # run_container_cpu.shの代わりにrockerコマンド直接実行(コンテナに名前をつける必要がある)
 
     echo "-- run AUTOWARE rocker... -->"    
     echo "CMD: ${AUTOWARE_ROCKER_EXEC_COMMAND}"
