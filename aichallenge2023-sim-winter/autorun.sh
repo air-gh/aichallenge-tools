@@ -7,8 +7,6 @@
 LOOP_TIMES=10
 SLEEP_SEC=180
 
-AWSIM_POS="0 250"
-AWSIM_SIZE="960 720"
 AUTOWARE_POS="0 250"
 AUTOWARE_SIZE="2450 1150"
 ZENITY_FONTSIZE=32
@@ -34,21 +32,6 @@ function set_autoware_window(){
     # raise window
     xdotool windowfocus ${AUTOWARE_WID}
     xdotool windowraise ${AUTOWARE_WID}
-}
-
-function set_awsim_window(){
-    # wait awsim window
-    AWSIM_WID=`xdotool search --name "AWSIM"`
-    while [ $? -ne 0 ]; do
-        sleep 5
-        AWSIM_WID=`xdotool search --name "AWSIM"`
-    done
-    # set window position and size
-    xdotool windowmove ${AWSIM_WID} ${AWSIM_POS}
-    xdotool windowsize ${AWSIM_WID} ${AWSIM_SIZE}
-    # raise window
-    xdotool windowfocus ${AWSIM_WID}
-    xdotool windowraise ${AWSIM_WID}
 }
 
 function show_info()
@@ -171,7 +154,6 @@ function do_game(){
     run_autoware_awsim
     if [ -n "${REC_PATH}" ]; then
         set_autoware_window
-        set_awsim_window
         show_info
         start_rec
     fi
