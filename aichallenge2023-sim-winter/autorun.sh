@@ -77,7 +77,7 @@ function cat_rec(){
     REC_LIST=`mktemp -p ${REC_PATH}`
     REC_RESULT_NAME=result_`date +"%FT%H%M%S"`.mp4
     ls -Q ${REC_PATH}/2024-*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
-    ffmpeg -f concat -safe 0 -i ${REC_LIST} -c copy ${REC_PATH}/${REC_RESULT_NAME}
+    ffmpeg -f concat -safe 0 -i ${REC_LIST} -vcodec copy -an ${REC_PATH}/${REC_RESULT_NAME}
     rm ${REC_PATH}/2024-*.mp4
     rm ${REC_LIST}
 }
