@@ -16,7 +16,7 @@ RIGHT_VIDEO_TMP=`mktemp -p . --suffix=.mp4`
 ffmpeg -y -i $LEFT_VIDEO  -ss $LEFT_START                        $LEFT_VIDEO_TMP
 ffmpeg -y -i $RIGHT_VIDEO -ss $RIGHT_START -vf crop=960:1042:0:0 $RIGHT_VIDEO_TMP
 
-ffmpeg -i $LEFT_VIDEO_TMP -i $RIGHT_VIDEO_TMP -filter_complex "overlay=x=960:y=0" -preset ultrafast merge.mp4
+ffmpeg -i $LEFT_VIDEO_TMP -i $RIGHT_VIDEO_TMP -filter_complex "overlay=shortest=1:x=960:y=0" -preset ultrafast merge.mp4
 
 rm $LEFT_VIDEO_TMP
 rm $RIGHT_VIDEO_TMP
