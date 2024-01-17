@@ -10,7 +10,7 @@ TARGET_PATCH_NAME="default"
 CURRENT_DIRECTORY_PATH=`pwd`
 
 AWSIM_POS="0 250"
-AWSIM_SIZE="960 720"
+AWSIM_SIZE="1920 1080"
 AUTOWARE_POS="0 250"
 AUTOWARE_SIZE="2450 1150"
 ZENITY_FONTSIZE=32
@@ -80,7 +80,7 @@ function cat_rec(){
     REC_RESULT_NAME="result_${TARGET_PATCH_NAME}_${BEST_TIME}.mp4"
     ls -Q ${REC_PATH}/2024-*.mp4 | sed "s/\"/\'/g" | sed "s/^/file /" > ${REC_LIST}
     ffmpeg -f concat -safe 0 -i ${REC_LIST} -vcodec copy -an ${REC_PATH}/${REC_RESULT_NAME}
-    rm ${REC_PATH}/2024-*.mp4
+#    rm ${REC_PATH}/2024-*.mp4
     rm ${REC_LIST}
 }
 
